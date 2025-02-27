@@ -10,6 +10,7 @@ const  ManagerDetailComponent= () => {
     Name: '',
     ManagerID: '',
     Company: '',
+    Cost_Center:'',
     Active: false,
     Reports_To: null
   });
@@ -17,6 +18,8 @@ const  ManagerDetailComponent= () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [managerlist, setManagerList] = useState([]);
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -27,6 +30,16 @@ const  ManagerDetailComponent= () => {
         .then((response) => setCompanies(response.data))
         .catch ((error) => console.error('Error fetching companies:', error));    
   }, []);
+
+  // Fetch Manager list from API
+  useEffect(() => {
+    ManagerDataServices.getManagers()
+    .then((response) => setManagerList(response.data))
+    .catch ((error) => console.error('Error fetching managers:', error));  
+
+  }, []);
+
+
 
   
   useEffect(() => {
@@ -46,13 +59,25 @@ const  ManagerDetailComponent= () => {
     fetchManager();
   }, [id]);
   
+    // Filter managers based on activeFilter state
+  const filteredManagers = managerlist.filter((manager) => {
+      return manager.Active === 1 ;
+  });
 
+
+
+  
   // Validate form fields
   const validateForm = () => {
     const errors = {};
     if (!manager.Name.trim()) errors.Name = 'Name is required.';
     if (!Number(manager.ManagerID)) errors.ManagerID = 'Manager ID is not a number.';
     if (!manager.Company.trim()) errors.Company = 'Company is required.';
+    
+  //  if (!manager.Cost_Center.trim()) errors.Cost_Center = 'Cost Center is required.';
+
+    if (!Number(manager.Cost_Center)) errors.Cost_Center = 'Cost Center is not a number.';
+
     // Validate Reports_To (Must be a number or null)
   
     if (manager.Reports_To !== '' && isNaN(Number(manager.Reports_To))) {
@@ -69,6 +94,7 @@ const  ManagerDetailComponent= () => {
       ...prevManager,
       [name]: type === 'checkbox' ? checked : value,
     }));
+    
   };
 
   // Handle form submission
@@ -86,7 +112,7 @@ const  ManagerDetailComponent= () => {
     // Convert empty string to null for Reports_To
     const updatedManager = {
       ...manager,
-      Reports_To: manager.Reports_To === '' ? null : manager.Reports_To,
+      Reports_To: manager.Reports_To === '' ? null : manager.Reports_To
     };
 
     
@@ -145,6 +171,7 @@ const  ManagerDetailComponent= () => {
             )}
           </div>
 
+
           {/* Company Dropdown */}
           <div className="form-group mb-3">
             <label htmlFor="Company" className="form-label">Company:</label>
@@ -166,6 +193,26 @@ const  ManagerDetailComponent= () => {
             )}
           </div>
 
+          {/* Cost Center */}
+          <div className="form-group mb-3">
+            <label htmlFor="Cost Center" className="form-label">Cost Center:</label>
+            <input
+              type="text"
+              name="Cost_Center"
+              value={manager.Cost_Center}
+              onChange={handleChange}
+              className={`form-control ${validationErrors.Cost_Center ? 'is-invalid' : ''}`}
+              required
+            />
+            {validationErrors.Cost_Center && (
+              <div className="invalid-feedback">{validationErrors.Cost_Center}</div>
+            )}
+          </div>
+
+
+
+
+
           {/* Active Checkbox */}
           <div className="form-check mb-3">
             <input
@@ -179,16 +226,23 @@ const  ManagerDetailComponent= () => {
             <label className="form-check-label" htmlFor="Active">Active</label>
           </div>
 
-          {/* Reports To */}
+          {/* Reports To Dropdown */}
           <div className="form-group mb-3">
             <label htmlFor="Reports_To" className="form-label">Reports To:</label>
-            <input
-              type="text"
+
+            <select
               name="Reports_To"
               value={manager.Reports_To}
               onChange={handleChange}
-              className={`form-control ${validationErrors.Reports_To ? 'is-invalid' : ''}`}
-            />
+              className={`form-select ${validationErrors.Reports_To ? 'is-invalid' : ''}`}
+            >
+              <option value="">-- Select a Manager --</option>
+              {filteredManagers.map((manlst) => (
+                <option key={manlst.ManagerID} value={manlst.ManagerID}>
+                  {manlst.Name} 
+                </option>
+              ))}
+            </select>
             {validationErrors.Reports_To && (
               <div className="invalid-feedback">{validationErrors.Reports_To}</div>
             )}

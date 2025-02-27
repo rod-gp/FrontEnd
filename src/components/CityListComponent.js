@@ -26,11 +26,11 @@ const CityListComponent = () => {
         </thead>
         <tbody>
             {cities.map((city) => (
-            <tr key={city.CityID}>
-                <td valign='middle'>{city.CityID}</td>
+            <tr key={city.CityId}>
+                <td valign='middle'>{city.CityId}</td>
                 <td valign='middle'>{city.City_Name}</td>
                 <td valign='middle'>{city.Country}</td>
-                <td valign='middle' ><Link to={`/city/${city.CityID}`} 
+                <td valign='middle' ><Link to={`/city/${city.CityId}`} 
                 className="btn btn-primary"
                 style={{ '--bs-btn-padding-y': '.01rem', '--bs-btn-padding-x': '.5rem', '--bs-btn-font-size': '.75rem' }} >
                 

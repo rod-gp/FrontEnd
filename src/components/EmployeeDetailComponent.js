@@ -1,92 +1,145 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import EmployeeDataService from "../services/employee.service";
+import cityDataService from "../services/city.service";
 
 const EmployeeDetailComponent = () => {
-  
-
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate(); // To redirect after successful update
-
-  const [employee, setEmployee] = useState({
-    EmployeeID : '',
-    Name: '',
-    Status: '',
-    Attrition: ''
-    }
-  );
-
   const { id } = useParams(); // Get EmployeeID from URL
+
+
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [cities, setCities] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({});
 
-  useEffect(() => {
-      
-    if (!id) return; 
 
+//get a list of all the cities
+useEffect(() => {
+  cityDataService.getCities()
+    .then((response) => setCities(response.data))
+    .catch ((error) => console.error('Error fetching Cities:', error));    
+}, []);
+
+
+// Safely handling Date formatting (Date object)
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is 0-based, so we add 1
+  const day = String(date.getDate()).padStart(2, "0"); // Pad single digits with leading 0
+  return `${year}-${month}-${day}`; // Format as yyyy-MM-dd
+};
+
+
+//get the employee details
+  useEffect(() => {
+    if (!id) return; // Don't do anything if no ID is provided
     const fetchEmployeeDetails = async () => {
         try{
             const response = await EmployeeDataService.getEmployee(id);
-            //console.log("Fetched Employee Data:", response.data); 
             setFormData(response.data[0]);
-          
         }
         catch(error) {
             console.error(`Error fetching Employee: ${id}`, error);
-            setError('Failed to load Employee details.');
+            setErrorMessage('Failed to load Employee details.');
+        } finally{
+          setLoading(false);
         }
     };
-
     fetchEmployeeDetails();
   }, [id]);
 
-  // if (!formData) return <p>Loading...</p>;
+  const validateForm = () => {
+    const errors={};
+    if (!formData.Name.trim()) errors.Name = 'Name is required.';
+   
+    if (formData.SAPID === null || formData.SAPID.trim() === '') {
+      errors.SAPID = 'SAPID is required.';
+    } else if (!Number(formData.SAPID)) {
+      errors.SAPID = 'SAPID must be a number.';
+    }
+   
+    return errors;
+  };
+  
 
-  // Handle form field changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEmployee((prev) => ({
-      ...prev,
-      [name]: value,
+    const { name, value, type, checked } = e.target;
+    setFormData((prevManager) => ({
+      ...prevManager,
+      [name]: type === 'checkbox' ? checked : value,
     }));
+
+    if (name === 'CityId') {
+      const selectedCity = cities.find(city => city.CityId === parseInt(value));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        City: selectedCity
+      }));
+    }
+
+
+
   };
 
   // Handle form submission (Simulating API update)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Employee Data:", formData);
-    alert("Employee details updated successfully!");
-    // Here you can make an API request to save the updated data
-
-
+    setValidationErrors({}); // Clear previous errors
+    const errors = validateForm();    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
     setSubmitting(true);
-    setSubmitting(false);
+
+    try {
+      await EmployeeDataService.update(id, formData);
+      setSuccess(true);
+      setTimeout(() => navigate('/employee/List/'+formData.Status),2000); 
+
+    }
+    catch(error){
+      console.error('Error updating Employee:', error);
+      setErrorMessage('Failed to update Employee details.');
+    }
+    finally{
+      setSubmitting(false);
+    }
   };
 
+  if (loading) return <div className="text-center">Loading Employee details...</div>;
+  if (errorMessage) return <div className="alert alert-danger">{errorMessage}</div>;
   if (!formData) return <p>Loading...</p>; 
 
-  // Safely handling Date formatting (Date object)
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is 0-based, so we add 1
-    const day = String(date.getDate()).padStart(2, "0"); // Pad single digits with leading 0
-    return `${year}-${month}-${day}`; // Format as yyyy-MM-dd
-  };
+  
 
   return (
   
-    <div className="container mt-4">
+    <div className="container mt-4" >
     <h2>Employee Details</h2>
-    <form onSubmit={handleSubmit}>
+
+    {success && <div className="alert alert-success">Employee updated successfully! Redirecting...</div>}
+    {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+
+    <form onSubmit={handleSubmit} className="employee-form">
       <table className="table table-bordered">
         <tbody>
           <tr>
             <th>Employee ID</th>
-            <td>{formData.EmployeeID}</td>
+            <td>{formData.EmployeeID}
+            <input
+              type="hidden"
+              name="EmployeeID"
+              value={formData.EmployeeID}
+              className="form-control"
+            />
+            </td>
           </tr>
           <tr>
             <th>Name</th>
@@ -94,10 +147,14 @@ const EmployeeDetailComponent = () => {
               <input
                 type="text"
                 name="Name"
-                className="form-control"
                 value={formData.Name}
                 onChange={handleChange}
+                className={`form-control ${validationErrors.Name ? 'is-invalid' : ''}`}
+                required
               />
+              {validationErrors.Name && (
+              <div className="invalid-feedback">{validationErrors.Name}</div>
+            )}
             </td>
           </tr>
           <tr>
@@ -155,51 +212,51 @@ const EmployeeDetailComponent = () => {
           <tr>
             <th>City</th>
             <td>
-              <input
-                type="text"
-                name="City_Name"
-                className="form-control"
-                value={formData.City?.City_Name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    City: { ...prev.City, City_Name: e.target.value },
-                  }))
-                }
-              />
+            <select
+              name="CityId"
+              value={formData.CityId}
+              onChange={handleChange}
+              className={`form-select ${validationErrors.CityId ? 'is-invalid' : ''}`}
+            >
+              <option value="">-- Select a Country --</option>
+              {cities.map((city) => (
+                <option key={city.CityId} value={city.CityId}>
+                  {city.City_Name}
+                </option>
+              ))}
+            </select>
+            {validationErrors.CityId && (
+              <div className="invalid-feedback">{validationErrors.CityId}</div>
+            )}
+        
             </td>
           </tr>
           <tr>
             <th>Country</th>
             <td>{formData.City?.Country}</td>
           </tr>
+
           <tr>
-            <th>Manager</th>
+            <th>SAP ID</th>
             <td>
-              <input
+            <input
                 type="text"
-                name="Manager_Name"
-                className="form-control"
-                value={formData.Manager?.Name}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    Manager: { ...prev.Manager, Name: e.target.value },
-                  }))
-                }
+                name="SAPID"
+                value={formData.SAPID==='null' ? '' : formData.SAPID}
+                onChange={handleChange}
+                className={`form-control ${validationErrors.SAPID ? 'is-invalid' : ''}`}
               />
+              {validationErrors.SAPID && (
+              <div className="invalid-feedback">{validationErrors.SAPID}</div>
+            )}
             </td>
           </tr>
-          <tr>
-            <th>Company</th>
-            <td>{formData.Manager?.Company}</td>
-          </tr>
-
+        
           <tr>
           <td colSpan="2" className="text-left">
             <button type="submit" className="btn btn-primary">Save Changes</button>
             {submitting ? 'Updating...' : '        '}
-            <button type="button" onClick={() => navigate('/employee/'+formData.Status)} className="btn btn-secondary">
+            <button type="button" onClick={() => navigate('/employee/List/'+formData.Status)} className="btn btn-secondary">
               Cancel
             </button>
           </td>

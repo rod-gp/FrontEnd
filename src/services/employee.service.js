@@ -1,7 +1,8 @@
 import http from "../http-common";
 
 class EmployeeDataService{
-     
+  
+    
     async getAllEmployees() {
         try {
             return await http.get("/employee");

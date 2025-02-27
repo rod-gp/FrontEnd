@@ -10,7 +10,7 @@ const  CityDetailComponent= () => {
 
   const [city, setCity] = useState({
     City_Name: '',
-    CityID: '',
+    CityId: '',
     Country: ''
   });
   
@@ -123,7 +123,7 @@ const  CityDetailComponent= () => {
         <tr>
           <td><strong>City ID:</strong></td>
           <td>
-            {city.CityID}
+            {city.CityId}
             <input type="hidden" name="CityID" value={city.CityID} />
           </td>
         </tr>

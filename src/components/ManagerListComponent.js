@@ -59,6 +59,8 @@ const ManagerListComponent = () => {
         </select>
       </div>
     
+ 
+    
     <table className="table table-striped table-sm" style={{ width: '700px' }}>
     <thead className="table-dark">
     <tr>
@@ -68,6 +70,7 @@ const ManagerListComponent = () => {
       </th>
       <th>Active</th>
       <th>Company</th>
+      <th>Cost Center</th>
       <th>Reports To</th>
       <th className="text-center">Action</th>
     </tr>
@@ -79,6 +82,7 @@ const ManagerListComponent = () => {
             <td> {manager.Name} </td>
             <td> {manager.Active ? 'Yes' : 'No'} </td>
             <td> {manager.Company} </td>
+            <td> {manager.Cost_Center} </td>
             <td> { manager.Reports_To ? managersMap[manager.Reports_To] : 'N/A' } </td>
 
             <td> <Link to={`/manager/${manager.ManagerID}`}

@@ -30,8 +30,6 @@ const EmployeeListComponent = () => {
                 <th>SAP ID</th>
                 <th>City</th>
                 <th>Country</th>
-                <th>Manager</th>
-                <th>Company</th>
                 <th align ='center'>Action</th>
             </tr>
             </thead>
@@ -46,8 +44,6 @@ const EmployeeListComponent = () => {
                 <td>{employee.SAPID}</td>
                 <td>{employee.City.City_Name}</td>
                 <td>{employee.City.Country}</td>
-                <td>{employee.Manager.Name}</td>
-                <td>{employee.Manager.Company}</td>
                 <td valign='middle' ><Link to={`/employee/${employee.EmployeeID}`} 
                 className="btn btn-primary"
                 style={{ '--bs-btn-padding-y': '.01rem', '--bs-btn-padding-x': '.5rem', '--bs-btn-font-size': '.75rem' }} >

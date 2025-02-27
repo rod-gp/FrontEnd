@@ -2,17 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-import CityListComponent from "./components/CityListComponent";
-import CityDetailComponent from './components/CityDetailComponent';
-
 import TableTransfer from './components/PeopleProjectsComponent';
 import EmployeeRoutes from './routes/EmployeeRoutes';
 import ManagerRoutes from './routes/ManagerRoutes'
+import CityRoutes from './routes/CityRoutes';
+import SofttekProjectsRoutes from './routes/SofttekProjectRoutes';
 
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
 const MaritzProjects = () => <div><h2>Projects</h2><p>Maritz Project details go here.</p></div>;
-const WBS = () => <div><h2>WBS</h2><p>Work Breakdown Structure details go here.</p></div>;
 
 
 
@@ -57,15 +55,15 @@ function App() {
         <div className="p-4" style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/city" element={<CityListComponent/> } />       
-            <Route path="/city/:id" element={<CityDetailComponent /> } />
+            <Route path="/city/*" element={<CityRoutes/> } />       
             <Route path="/employee/*" element={<EmployeeRoutes />} />
             <Route path="/manager/*" element={<ManagerRoutes />} />
+            <Route path="/wbs/*" element={<SofttekProjectsRoutes />} />        
 
             <Route path="/SofttekProjects" element={<TableTransfer />} />
             <Route path="/MaritzProjects" element={<MaritzProjects />} />
 
-            <Route path="/wbs" element={<WBS />} />
+
           </Routes>
         </div>
       </div>
