@@ -7,12 +7,10 @@ import EmployeeRoutes from './routes/EmployeeRoutes';
 import ManagerRoutes from './routes/ManagerRoutes'
 import CityRoutes from './routes/CityRoutes';
 import SofttekProjectsRoutes from './routes/SofttekProjectRoutes';
+import MaritzProjectsRoutes from './routes/MaritzProjectRoutes';
 
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
-const MaritzProjects = () => <div><h2>Projects</h2><p>Maritz Project details go here.</p></div>;
-
-
 
 function App() {
 
@@ -40,16 +38,18 @@ function App() {
             <span className="nav-link">Projects</span>         
                 <ul className="nav flex-column ms-3">
                     <li className="nav-item">
-                      <Link className="nav-link" to="/SofttekProjects">Softtek</Link>
+                      <Link className="nav-link" to="/wbs">WBS</Link></li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/project">Maritz</Link>
                     </li>
                     <li className="nav-item">
-                      <Link className="nav-link" to="/MaritzProjects">Maritz</Link>
+                      <Link className="nav-link" to="/SofttekProjects">Assign to Project</Link>
                     </li>
-                  </ul>
+                </ul>
             </li>
 
             <li className="nav-item"><Link className="nav-link" to="/manager/list">Managers</Link></li>
-            <li className="nav-item"><Link className="nav-link" to="/wbs">WBS</Link></li>
+    
           </ul>
         </nav>
         <div className="p-4" style={{ flex: 1 }}>
@@ -59,9 +59,11 @@ function App() {
             <Route path="/employee/*" element={<EmployeeRoutes />} />
             <Route path="/manager/*" element={<ManagerRoutes />} />
             <Route path="/wbs/*" element={<SofttekProjectsRoutes />} />        
+            <Route path="/project/*" element={<MaritzProjectsRoutes />} />
+
 
             <Route path="/SofttekProjects" element={<TableTransfer />} />
-            <Route path="/MaritzProjects" element={<MaritzProjects />} />
+
 
 
           </Routes>

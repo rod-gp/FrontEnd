@@ -29,7 +29,16 @@ class ManagerDataService{
             throw error;
         }
     }
-
+    
+    async create(data) {
+        try {
+            return await http.post("/manager",data);
+        } catch (error) {
+            console.error("Error creating manager:", error);
+            throw error;
+        }
+    }
+    
     async getCompanies() {
         try {
             return await http.get("/manager/company");

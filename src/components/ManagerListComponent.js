@@ -5,7 +5,7 @@ import ManagerDataServices from '../services/manager.service';
 const ManagerListComponent = () => {
   const { sort } = useParams(); // Get the manager ID from the URL
   const [managers, setManagers] = useState([]);
-  const [activeFilter, setActiveFilter] = useState((sort===undefined)?"all":sort); //Filtering State
+  const [activeFilter, setActiveFilter] = useState((sort===undefined)?"active":sort); //Filtering State
   const [sortOrder, setSortOrder] = useState("asc"); // Sorting order state
   const [managersMap, setManagersMap] = useState({});
 
@@ -93,6 +93,7 @@ const ManagerListComponent = () => {
         ))}
       </tbody>
     </table>
+      <Link to={`/manager/0`} className="btn btn-primary">Create New</Link>
     </div>
   );
 };

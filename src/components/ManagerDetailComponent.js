@@ -8,11 +8,11 @@ const  ManagerDetailComponent= () => {
 
   const [manager, setManager] = useState({
     Name: '',
-    ManagerID: '',
+    ManagerID: '0',
     Company: '',
     Cost_Center:'',
-    Active: false,
-    Reports_To: null
+    Active: true,
+    Reports_To: ''
   });
   
   const [errorMessage, setErrorMessage] = useState('');
@@ -46,6 +46,9 @@ const  ManagerDetailComponent= () => {
 
     const fetchManager = async () => {
       try {
+        if (id === '0') {
+          return;
+        }
         const response = await ManagerDataServices.getManagerById(id);
         setManager(response.data);
       } catch (error) {
@@ -71,7 +74,7 @@ const  ManagerDetailComponent= () => {
   const validateForm = () => {
     const errors = {};
     if (!manager.Name.trim()) errors.Name = 'Name is required.';
-    if (!Number(manager.ManagerID)) errors.ManagerID = 'Manager ID is not a number.';
+ //   if (!Number(manager.ManagerID)) errors.ManagerID = 'Manager ID is not a number.';
     if (!manager.Company.trim()) errors.Company = 'Company is required.';
     
   //  if (!manager.Cost_Center.trim()) errors.Cost_Center = 'Cost Center is required.';
@@ -99,14 +102,17 @@ const  ManagerDetailComponent= () => {
 
   // Handle form submission
   const handleSubmit = async (e) => {
+  
     e.preventDefault();
     setValidationErrors({}); // Clear previous errors
     const errors = validateForm();    
     if (Object.keys(errors).length > 0) {
+      console.log('object errors');
       setValidationErrors(errors);
       return;
     }
 
+   // console.log(id);
     setSubmitting(true);
 
     // Convert empty string to null for Reports_To
@@ -117,6 +123,14 @@ const  ManagerDetailComponent= () => {
 
     
     try {
+ 
+        if (id === '0') {
+            await ManagerDataServices.create(updatedManager);
+            setSuccess(true);
+            setTimeout(() => navigate(`/manager/list/${updatedManager.Active === 1 ? 'active' : 'inactive'}`), 2000); // Redirect after 2 seconds
+            return;
+        }
+
         await ManagerDataServices.update(id,updatedManager);
         setSuccess(true);
         setTimeout(() => navigate(`/manager/list/${updatedManager.Active === 1 ? 'active' : 'inactive'}`), 2000); // Redirect after 2 seconds
@@ -130,6 +144,7 @@ const  ManagerDetailComponent= () => {
 
 
   if (loading) return <div className="text-center">Loading manager details...</div>;
+  if (submitting) return <div className="text-center">Submitting manager details...</div>;
   if (errorMessage) return <div className="alert alert-danger">{errorMessage}</div>;
 
   return (
@@ -137,9 +152,9 @@ const  ManagerDetailComponent= () => {
 
     <div className="container mt-5">
     <div className="card shadow-lg p-4">
-      <h2 className="text-center mb-4">Update Manager</h2>
+      <h2 className="text-center mb-4">{id==='0'?'Create':'Update'} Manager</h2>
 
-        {success && <div className="alert alert-success">Manager updated successfully! Redirecting...</div>}
+        {success && <div className="alert alert-success">Manager {id==='0'?'Created':'updated'}  successfully! Redirecting...</div>}
         {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
         <form onSubmit={handleSubmit} className="manager-form">
@@ -152,7 +167,7 @@ const  ManagerDetailComponent= () => {
               value={manager.ManagerID}
               className="form-control"
             />
-            <p className="form-control-static">{manager.ManagerID}</p>
+            <p className="form-control-static">{manager.ManagerID!=='0'?manager.ManagerID:''}</p>
           </div>
 
           {/* Name */}
@@ -250,8 +265,8 @@ const  ManagerDetailComponent= () => {
 
           {/* Submit Button */}
           <div className="d-flex justify-content-between">
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Updating...' : 'Update Manager'}
+            <button type="submit" className="btn btn-primary" >
+              {id==='0'?'Create Manager':'Update Manager'}
             </button>
 
             <button type="button" className="btn btn-secondary" 

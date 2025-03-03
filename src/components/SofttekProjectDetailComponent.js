@@ -6,17 +6,33 @@ const SofttekProjectDetailComponent = () => {
 
     const { id } = useParams();
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState({
+      Softtek_ProjectID : '',  
+      Project_Name: '',
+        Project_WBS: '',
+        Start_Date: '',
+        End_Date: '',
+        TCV: '',
+        CRM_Opp: '',
+        CRM_Order: '',
+        Practice: '',
+        Type: ''
+    });
     const [loading, setLoading] = useState(true);
+    const [success, setSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(''); 
 
 
     useEffect(() => {
         const fetchProject = async () => {
         try{
+          if (id !== '0') {
             const response = await softtekProjectDataService.getProject(id);
             setFormData(response.data);
+          }
         } 
         catch(error){
+          setErrorMessage(error.message);
             console.error('Error fetching Project:', error);
         }
         finally{
@@ -36,9 +52,21 @@ const SofttekProjectDetailComponent = () => {
       const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-          await softtekProjectDataService.update(id, formData);
-            navigate("/wbs");
+          if (id === '0') {
+            await softtekProjectDataService.create(formData);
+            setSuccess(true);
+            setTimeout(() => navigate("/wbs"),2000);
+            return;
+          }
+          else{
+            await softtekProjectDataService.update(id, formData);
+            setSuccess(true);
+            setTimeout(() => navigate("/wbs"),2000);
+            
+          }
+
         } catch (error) {
+          setErrorMessage(error.message);
           console.error("Error updating project:", error);
         }
       };
@@ -51,6 +79,10 @@ const SofttekProjectDetailComponent = () => {
 
     <h2>Edit Project</h2>
       <form onSubmit={handleSubmit}>
+
+      {success && <div className="alert alert-success">Project updated successfully! Redirecting...</div>}
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+
         <table className="table table-bordered">
           <tbody>
             <tr>
@@ -91,7 +123,7 @@ const SofttekProjectDetailComponent = () => {
             </tr>
           </tbody>
         </table>
-        <button type="submit" className="btn btn-primary">Save Changes</button>
+        <button type="submit" className="btn btn-primary">{id === '0' ?'Create New':'Save Changes'}</button>
         <button type="button" className="btn btn-secondary ms-2" onClick={() => navigate("/wbs")}>
           Cancel
         </button>

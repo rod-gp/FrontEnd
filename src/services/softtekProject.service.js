@@ -27,6 +27,15 @@ class SofttekProjectDataService{
             throw error;
         }
     }
+
+    async create(data) {
+        try {
+            return await http.post("/softtekproject", data);
+        } catch (error) {
+            console.error("Error creating Softtek project:", error);
+            throw error;
+        }
+    }
 }
 
 const softtekProjectDataService = new SofttekProjectDataService();
