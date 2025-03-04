@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import maritzProjectDataService from "../services/maritzProject.service";
 import ManagerDataServices from '../services/manager.service';
 import SofttekProjectDataService from '../services/softtekProject.service';
-
+import employeeProjectDataService from '../services/employeeProject.service';
 
 
 const MaritzProjectDetailComponent = () => {
@@ -11,7 +11,7 @@ const MaritzProjectDetailComponent = () => {
     const { id } = useParams();
 
     const navigate = useNavigate();
-    const isNewProject = id === '0';
+    const isNewProject = (id === '0');
     const [project, setProject] = useState({
         Maritz_ProjectID: '',
         Project_Name: '',
@@ -29,14 +29,34 @@ const MaritzProjectDetailComponent = () => {
     const [managerlist, setManagerList] = useState([]);
     const [validationErrors, setValidationErrors] = useState({});
     const [softtekProjectList, setSofttekProjectList] = useState([]);
+    const [employeeProjectList, setEmployeeProjectList] = useState([]);
 
- // Fetch Manager list from API
+
+ // Fetch people assigned to the project
     useEffect(() => {
+        const fetchAssignment = async () => {
+            try {
+                if (!isNewProject) {
+                    const response = await employeeProjectDataService.getEmployeesAssignedToProject(id);
+                    setEmployeeProjectList(response.data);                    
+                }
+            }
+            catch(error){
+                setErrorMessage(error.message);
+                console.error('Error fetching Project:', error);
+            }
+        };
+        fetchAssignment();
+    }, [id, isNewProject]);
+
+     // Fetch Manager list from API
+     useEffect(() => {
         ManagerDataServices.getManagers()
         .then((response) => setManagerList(response.data))
         .catch ((error) => console.error('Error fetching managers:', error));  
 
     }, []);
+
 
     // Filter managers based on activeFilter state
     const filteredManagers = managerlist.filter((manager) => {
@@ -120,13 +140,18 @@ const MaritzProjectDetailComponent = () => {
 
     return (
         <div className="container mt-4">
-            <h2>{isNewProject ? 'Create New Project' : 'Edit Project'}</h2>
-            <form onSubmit={handleSubmit}>
+
+            
     
     
                 {success && <div className="alert alert-success">Project updated successfully! Redirecting...</div>}
                 {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
+                <table>
+                    <tr>
+                    <td>
+                    <h2>{isNewProject ? 'Create New Project' : 'Edit Project'}</h2>
+                    <form onSubmit={handleSubmit}>
                 <table className="table table-bordered" style={{ width: '500px' }}>    
                     <tbody>
                         <tr>
@@ -205,6 +230,44 @@ const MaritzProjectDetailComponent = () => {
                 <button type="submit" className="btn btn-success">{isNewProject ? 'Create' : 'Save'}</button>
                 <button type="button" className="btn btn-secondary ms-2" onClick={() => navigate('/project')}>Cancel</button>
             </form>
+            
+            </td>
+                <td style={{ width: '100px' }}> </td>
+                
+  
+                
+                { !isNewProject && (
+                 <>
+                        <td valign='top'>
+                        <h2>Employees Assigned to Project</h2> 
+                          <table className='table table-bordered' style={{ width: '600px' }}>
+                            <thead>
+                                <tr>
+                    
+                                    <th style={{ width: '50%' }}>Name</th>
+                                    <th style={{ width: '10%' }}>Start Date</th>
+                                    <th style={{ width: '10%' }}>End Date</th>
+                                    <th style={{ width: '30%' }}>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {employeeProjectList.map((employee) => (
+                                    <tr key={employee.EmployeeID}>
+                                       
+                                        <td>{employee?.Employee.Name}</td>
+                                        <td>{new Date(employee?.Employee.Start_Date).toLocaleDateString()} </td>
+                                        <td>{new Date(employee?.Employee.End_Date).toLocaleDateString()}</td>
+                                        <td>{employee?.Employee.City.City_Name}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>              
+                        </td>
+                        </>
+                        )}
+                    
+                    </tr>
+                </table>
         </div>
     );
 
