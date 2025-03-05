@@ -7,6 +7,22 @@ const EmployeeDetailComponent = () => {
   const navigate = useNavigate(); // To redirect after successful update
   const { id } = useParams(); // Get EmployeeID from URL
 
+  const [formData, setFormData] = useState({
+    EmployeeID: 0,
+    Name: '',
+    Start_Date: '',
+    End_Date: '',
+    Status: 0,
+    Attrition: 0,
+    CityId: '',
+    SAPID: '',
+    City: {
+      CityId: 0,
+      City_Name: '',
+      Country: ''
+    }
+
+  });
 
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -14,7 +30,7 @@ const EmployeeDetailComponent = () => {
   const [cities, setCities] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [formData, setFormData] = useState({});
+
 
 
 //get a list of all the cities
@@ -38,9 +54,15 @@ const formatDateForInput = (dateString) => {
 
 //get the employee details
   useEffect(() => {
-    if (!id) return; // Don't do anything if no ID is provided
+
+
     const fetchEmployeeDetails = async () => {
-        try{
+
+
+      try{
+        if (id === '0') {
+          return;
+        }
             const response = await EmployeeDataService.getEmployee(id);
             setFormData(response.data[0]);
         }
@@ -58,7 +80,7 @@ const formatDateForInput = (dateString) => {
     const errors={};
     if (!formData.Name.trim()) errors.Name = 'Name is required.';
    
-    if (formData.SAPID === null || formData.SAPID.trim() === '') {
+    if (formData.SAPID === null) {
       errors.SAPID = 'SAPID is required.';
     } else if (!Number(formData.SAPID)) {
       errors.SAPID = 'SAPID must be a number.';
@@ -99,10 +121,17 @@ const formatDateForInput = (dateString) => {
     setSubmitting(true);
 
     try {
-      await EmployeeDataService.update(id, formData);
-      setSuccess(true);
-      setTimeout(() => navigate('/employee/List/'+formData.Status),2000); 
 
+      if (id === '0') {
+        await EmployeeDataService.create(formData);
+        setSuccess(true);
+        setTimeout(() => navigate('/employee/List/'+formData.Status),2000); 
+      }
+      else{
+        await EmployeeDataService.update(id, formData);
+        setSuccess(true);
+        setTimeout(() => navigate('/employee/List/'+formData.Status),2000); 
+      }
     }
     catch(error){
       console.error('Error updating Employee:', error);
@@ -115,7 +144,7 @@ const formatDateForInput = (dateString) => {
 
   if (loading) return <div className="text-center">Loading Employee details...</div>;
   if (errorMessage) return <div className="alert alert-danger">{errorMessage}</div>;
-  if (!formData) return <p>Loading...</p>; 
+
 
   
 

@@ -14,6 +14,9 @@ const MaritzProjectListComponent = () => {
     , []);
     
 
+
+
+
     return(
         <div className="container mt-4">
             <table className="table table-striped table-sm" style={{ width: '1200px' }}>

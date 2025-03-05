@@ -18,7 +18,10 @@ const EmployeeListComponent = () => {
     return (
 
         <div className="container mt-4">
-        <h2>{id === "0" ? "Active Employees" : "Inactive Employees"}</h2>
+        <h2>{id === "0" ? "Active Employees         " : "Inactive Employees                "}
+        <Link to={`/employee/0`} 
+                className="btn btn-primary">
+                Add Employee</Link></h2>
             <table className="table table-striped table-sm">
             <thead className="table-dark">
             <tr>          

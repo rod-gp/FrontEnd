@@ -27,7 +27,7 @@ const MaritzProjectDetailComponent = () => {
     const [loading, setLoading] = useState(''); 
     const [success, setSuccess] = useState(false);
     const [managerlist, setManagerList] = useState([]);
-    const [validationErrors, setValidationErrors] = useState({});
+    //const [validationErrors, setValidationErrors] = useState({});
     const [softtekProjectList, setSofttekProjectList] = useState([]);
     const [employeeProjectList, setEmployeeProjectList] = useState([]);
 
@@ -182,7 +182,7 @@ const MaritzProjectDetailComponent = () => {
                                 name="ManagerID"
                                 value={project.ManagerID}
                                 onChange={handleChange}
-                                className={`form-select ${validationErrors.Reports_To ? 'is-invalid' : ''}`}
+                                className={`form-select ${errorMessage.Reports_To ? 'is-invalid' : ''}`}
             >
                                 <option value="">-- Select a Manager --</option>
                                     {filteredManagers.map((manlst) => (
@@ -204,7 +204,7 @@ const MaritzProjectDetailComponent = () => {
                                 name="Softtek_ProjectID"
                                 value={project.Softtek_ProjectID}
                                 onChange={handleChange}
-                                className={`form-select ${validationErrors.Reports_To ? 'is-invalid' : ''}`}
+                                className={`form-select ${errorMessage.Reports_To ? 'is-invalid' : ''}`}
                             >
                                 <option value="">-- Select a WBS --</option>
                                     {softtekProjectList.map((manlst) => (
@@ -236,7 +236,7 @@ const MaritzProjectDetailComponent = () => {
                 
   
                 
-                { !isNewProject && (
+                { !isNewProject && employeeProjectList.length !== 0 && (
                  <>
                         <td valign='top'>
                         <h2>Employees Assigned to Project</h2> 
