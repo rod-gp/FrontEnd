@@ -8,7 +8,7 @@ import ManagerRoutes from './routes/ManagerRoutes'
 import CityRoutes from './routes/CityRoutes';
 import SofttekProjectsRoutes from './routes/SofttekProjectRoutes';
 import MaritzProjectsRoutes from './routes/MaritzProjectRoutes';
-
+import DashboardRoutes from './routes/DashboardRoutes';
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
 
@@ -21,7 +21,9 @@ function App() {
         <nav className="bg-light p-3 vh-100" style={{ width: '250px' }}>
           <h4>Menu</h4>
           <ul className="nav flex-column">
-            <li className="nav-item"><Link className="nav-link" to="/">Home</Link></li>
+            
+          <li className="nav-item"><Link className="nav-link" to="/">Home</Link></li>
+            <li className="nav-item"><Link className="nav-link" to="/dash">Dashboard</Link></li>
             <li className="nav-item">
             <span className="nav-link">Employee</span>         
                 <ul className="nav flex-column ms-3">
@@ -52,9 +54,10 @@ function App() {
     
           </ul>
         </nav>
-        <div className="p-4" style={{ flex: 1 }}>
+        <div className="p-4" >
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={< Home />} />            
+            <Route path="/dash/*" element={<DashboardRoutes />} />
             <Route path="/city/*" element={<CityRoutes/> } />       
             <Route path="/employee/*" element={<EmployeeRoutes />} />
             <Route path="/manager/*" element={<ManagerRoutes />} />

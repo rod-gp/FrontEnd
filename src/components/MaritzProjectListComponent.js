@@ -19,7 +19,7 @@ const MaritzProjectListComponent = () => {
 
     return(
         <div className="container mt-4">
-            <table className="table table-striped table-sm" style={{ width: '1200px' }}>
+            <table className="table table-striped table-sm" >
             <thead className="table-dark">
             <tr>
               <th>ID</th>
@@ -29,6 +29,7 @@ const MaritzProjectListComponent = () => {
               <th>SOW</th>
               <th>Cost Center</th>
               <th>Manager</th>
+              <th>HC</th>
               <th>WBS</th>
               <th>Status</th>
               <th align ='center'>Action</th>
@@ -44,6 +45,7 @@ const MaritzProjectListComponent = () => {
                     <td valign='middle'>{project.SOW_Name}</td>
                     <td valign='middle'>{project.Cost_Center}</td>
                     <td valign='middle'>{project?.Manager.Name}</td>
+                    <td valign='middle'>{project.employeeCount}</td>
                     <td valign='middle'>{project?.Softtek_Project.Project_WBS}</td>
                     <td valign='middle'>{project.Active === 0?'Inactive':'Active'}</td>
                     <td valign='middle' align ='center'><Link to={`/project/${project.Maritz_ProjectID}`} 

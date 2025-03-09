@@ -17,6 +17,7 @@ const TableTransfer = () => {
 
   // Initially empty selected items
   const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedSelectedItems, setSelectedSelectedItems] = useState([]);
 
   // Track selected items in each table
   const [selectedAvailable, setSelectedAvailable] = useState([]);
@@ -80,10 +81,19 @@ const TableTransfer = () => {
   };
 
     const save = async(e) =>{
-      
+      const tmp =  selectedItems.map(emp => ({
+        EmployeeID: emp.EmployeeID,
+        Maritz_ProjectID: activeProject,
+        Start_Date: emp.Start_Date,
+        End_Date: emp.End_Date
+      }));
 
-
-
+      try {
+        const response = await EmployeeProjectDataService.assign(activeProject,tmp);
+      }
+      catch(err){
+        console.error('Error assigning Employees:', err);
+      }
     };
 
 
@@ -104,6 +114,8 @@ const TableTransfer = () => {
             
             
             setSelectedItems(basicEmployeeData);
+            setSelectedSelectedItems(basicEmployeeData);
+
         }
         catch (error) {
             console.error('Error fetching Employees:', error);
@@ -123,6 +135,16 @@ const TableTransfer = () => {
     item.Name.toLowerCase().includes(searchTerm.toLowerCase())
 );
 
+
+const dateChange = (e, index) => {
+  const { name, value, type, checked } = e.target;
+  
+  setSelectedItems(prevState => 
+    prevState.map((item, i) => 
+      i === index ? { ...item, [name]: type === 'checkbox' ? checked : value } : item
+    )
+  );
+};
 
   return (
     <div className="container mt-5">
@@ -148,9 +170,6 @@ const TableTransfer = () => {
                  <>
 
       <h2 className="text-center mb-4">Assign to Project {getProjectName(activeProject)}</h2>
-      
-
-
       <input
                 type="text"
                 className="form-control mb-2"
@@ -163,7 +182,6 @@ const TableTransfer = () => {
         {/* Available Items Table */}
         <div className="col-md-4">
           <h5 className="text-center">Available Employees</h5>
-          
           <table className="table table-bordered">
                 <thead className="table-dark">
                     <tr>
@@ -177,7 +195,7 @@ const TableTransfer = () => {
                                 key={item.EmployeeID}
                                 className={selectedAvailable.includes(item) ? "table-primary" : ""}
                                 onClick={() => toggleSelectAvailable(item)}
-                                style={{ cursor: "pointer" }}
+                                style={{cursor: "pointer"}}
                             >
                                 <td>{item.Name}</td>
                             </tr>
@@ -192,10 +210,10 @@ const TableTransfer = () => {
         </div>
 
         {/* Move Buttons */}
-        <div className="col-md-3 d-flex flex-column align-self-start align-items-center justify-content-center">
-         <table> <thead></thead>
+        <div className="col-md-2 d-flex flex-column align-self-start align-items-center justify-content-center">
+         <table> 
          <tbody>
-         <tr style={{ height: '30px' }}>
+         <tr style={{height: '30px'}}>
          <td > </td>
          </tr>
           
@@ -231,34 +249,29 @@ const TableTransfer = () => {
           </td></tr>
           </tbody>
           </table>
-
-
         </div>
-
         {/* Selected Items Table */}
         <div className="col-md-4">
           <h5 className="text-center">Selected Employee</h5>
-          <table className="table table-bordered">
+          <table className="table table-bordered" style={{width: '600px'}}>
             <thead className="table-dark">
               <tr>
                 <th>Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-
               </tr>
             </thead>
             <tbody>
-              {selectedItems.map((item) => (
+              {selectedItems.map((item, index) => (
                 <tr
                   key={item.EmployeeID}
                   className={selectedSelected.includes(item) ? "table-danger" : ""}
                   onClick={() => toggleSelectSelected(item)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td>{item.Name}</td>
-                  <td>{item.Start_Date}</td>
-                  <td>{item.End_Date}</td>
-
+                  <td valign='middle' style={{ width: '80%' }} >{item.Name}</td>
+                  <td valign='middle' style={{ width: '10%' }}><input name ='Start_Date' type ='date' onChange={(e) => dateChange(e, index)} value={item.Start_Date?.split("T")[0] || ""}  className="form-control" /></td>
+                  <td valign='middle'  style={{ width: '10%' }}><input name ='End_Date' type ='date' onChange={(e) => dateChange(e, index)} value={item.End_Date?.split("T")[0] || ""} className="form-control" /></td>
                 </tr>
               ))}
             </tbody>

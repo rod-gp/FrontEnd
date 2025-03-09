@@ -38,7 +38,14 @@ class EmployeeDataService{
         }
     }
 
-    
+    async assign(id, data){
+        try {
+            return await http.put(`/assign/project/${id}`, data);
+        } catch (error) {
+            console.error(`Error updating Employees to Project ID ${id}:`, error);
+            throw error;
+        }
+    }
 
 }
 
