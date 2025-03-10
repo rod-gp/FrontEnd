@@ -17,8 +17,9 @@ function App() {
 
   return (
     <Router>
+  
       <div className="d-flex">
-        <nav className="bg-light p-3 vh-100" style={{ width: '250px' }}>
+        <nav className="bg-light p-3 vh-100" style={{ width: '220px' }}>
           <h4>Menu</h4>
           <ul className="nav flex-column">
             
@@ -66,12 +67,10 @@ function App() {
 
 
             <Route path="/SofttekProjects" element={<TableTransfer />} />
-
-
-
           </Routes>
         </div>
       </div>
+
     </Router>
   );
 }

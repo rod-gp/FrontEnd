@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import HomeDashboardComponent from "../components/HomeDashboardComponent";
+import HomeDashboardComponent from "../components/DashboardComponent";
 
 
 const DashboardRoutes = () => {

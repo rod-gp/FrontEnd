@@ -21,6 +21,14 @@ class DashboardDataService{
         }
     }
 
+    async getHClast12Months() {
+        try {
+            return await http.get("/dashboard/hclast12months");
+        } catch (error) {
+            console.error("Error fetching HC last 12 months:", error);
+            throw error;
+        }
+    }
 
 
 }
