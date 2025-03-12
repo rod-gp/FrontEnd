@@ -30,6 +30,23 @@ class DashboardDataService{
         }
     }
 
+    async getHCbyStatus() {
+        try {
+            return await http.get("/dashboard/hcbystatus");
+        } catch (error) {
+            console.error("Error fetching HC by status:", error);
+            throw error;
+        }
+    }
+
+    async getHCbyCity() {
+        try {
+            return await http.get("/dashboard/hcbycity");
+        } catch (error) {
+            console.error("Error fetching HC by city:", error);
+            throw error;
+        }
+    }
 
 }
 

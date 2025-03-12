@@ -45,27 +45,34 @@ const ManagerListComponent = () => {
 
   return (
 
-    <div className="container mt-4">
-    <div className="mb-3">
-        <label className="me-2 fw-bold">Filter by Status:</label>
-        <select
-          className="form-select d-inline-block w-auto"
-          value={activeFilter}
-          onChange={(e) => setActiveFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+    <div className="container pt-2">
+      <div className="row align-items-center">
+        <div className="col-3"> 
+          <label className="fw-bold">Filter by Status:</label> 
+        </div>
+        <div className="col-6"> 
+              <select
+                  className="form-select d-inline-block w-auto"
+                  value={activeFilter}
+                  onChange={(e) => setActiveFilter(e.target.value)}
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+        </div>
+      <div className="col-3">   
+        <Link to={`/manager/0`} className="btn btn-primary">Add Manager</Link>
       </div>
+    </div>
     
- 
+    <div className="container mt-2"></div>
     
-    <table className="table table-striped table-sm" style={{ width: '700px' }}>
+    <table className="table table-striped table-sm" style={{ width: '1200px' }}>
     <thead className="table-dark">
     <tr>
-      <th>ID</th>
-      <th onClick={toggleSortOrder} style={{ cursor: "pointer" }}>
+   {/*   <th>ID</th> */ }
+       <th onClick={toggleSortOrder} style={{ cursor: "pointer" }}>
               Manager Name {sortOrder === "asc" ? "🔼" : "🔽"}
       </th>
       <th>Active</th>
@@ -78,14 +85,14 @@ const ManagerListComponent = () => {
     <tbody>
         {sortedManagers.map((manager) => (
         <tr key={manager.ManagerID} >
-            <td> {manager.ManagerID} </td>
+       {/*  <td> {manager.ManagerID} </td>   */}
             <td> {manager.Name} </td>
             <td> {manager.Active ? 'Yes' : 'No'} </td>
             <td> {manager.Company} </td>
             <td> {manager.Cost_Center} </td>
             <td> { manager.Reports_To ? managersMap[manager.Reports_To] : 'N/A' } </td>
 
-            <td> <Link to={`/manager/${manager.ManagerID}`}
+            <td align="center"> <Link to={`/manager/${manager.ManagerID}`}
             className="btn btn-primary"
             style={{ '--bs-btn-padding-y': '.01rem', '--bs-btn-padding-x': '.5rem', '--bs-btn-font-size': '.75rem' }} 
             >Edit</Link></td>
@@ -93,7 +100,6 @@ const ManagerListComponent = () => {
         ))}
       </tbody>
     </table>
-      <Link to={`/manager/0`} className="btn btn-primary">Create New</Link>
     </div>
   );
 };
