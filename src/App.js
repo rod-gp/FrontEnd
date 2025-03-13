@@ -9,6 +9,7 @@ import CityRoutes from './routes/CityRoutes';
 import SofttekProjectsRoutes from './routes/SofttekProjectRoutes';
 import MaritzProjectsRoutes from './routes/MaritzProjectRoutes';
 import DashboardRoutes from './routes/DashboardRoutes';
+import FinanceRoutes from './routes/FinanceRoutes';
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
 
@@ -46,12 +47,35 @@ function App() {
                       <Link className="nav-link" to="/project">Maritz</Link>
                     </li>
                     <li className="nav-item">
-                      <Link className="nav-link" to="/SofttekProjects">Assign to Project</Link>
+                      <Link className="nav-link" to="/SofttekProjects">Assign</Link>
                     </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/SofttekProjects">Fixeded Cost</Link>
+                    </li>
+
                 </ul>
             </li>
 
             <li className="nav-item"><Link className="nav-link" to="/manager/list">Managers</Link></li>
+           
+            <li className="nav-item">
+            <span className="nav-link">Finance</span>         
+                <ul className="nav flex-column ms-3">
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance">Invoices</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance/backlog">Project Backlog</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance/backlog">Rate Card</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance/backlog">Taxonomy Cost</Link>
+                    </li>
+
+                  </ul>
+            </li>
     
           </ul>
         </nav>
@@ -64,6 +88,7 @@ function App() {
             <Route path="/manager/*" element={<ManagerRoutes />} />
             <Route path="/wbs/*" element={<SofttekProjectsRoutes />} />        
             <Route path="/project/*" element={<MaritzProjectsRoutes />} />
+            <Route path="/finance/*" element={<FinanceRoutes />} />
 
 
             <Route path="/SofttekProjects" element={<TableTransfer />} />

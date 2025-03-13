@@ -6,7 +6,7 @@ import inFlag from "../images/india-flag.png";
 import mxFlag from "../images/mexico-flag.png";
 import mes from "../images/engagement.jpg";
 import auto from "../images/auto.jpeg";
-import bes from "../images/bes.jpeg";
+import bes from "../images/bes.jpeg"; 
 import mits from "../images/itsm.png";
 import dds from "../services/dashboard.service.js";
 
@@ -17,19 +17,26 @@ const HomeDashboardComponent = () =>{
     const [hcByCountry, setHcByCountry] = useState([]);
     const [hcByCompany, setHcByCompany] = useState([]);
     const [hclast12Months, setHclast12Months] = useState([]);
+    const [hcByCity, setHcByCity]= useState([]);
+    const [hcByStatus, setHcByStatus]= useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [companyResponse, countryResponse,last12MonthsResponse] = await Promise.all([
+                const [companyResponse, countryResponse,last12MonthsResponse, byCityResponse, byStatusResponse] = await Promise.all([
                     dds.getHCbyCompany(),
                     dds.getHCbyCountry(),
-                    dds.getHClast12Months()
+                    dds.getHClast12Months(),
+                    dds.getHCbyCity(),
+                    dds.getHCbyStatus()
                 ]);
     
                 setHcByCompany(companyResponse.data);
                 setHcByCountry(countryResponse.data);
                 setHclast12Months(last12MonthsResponse.data);
+                setHcByCity(byCityResponse.data);
+                setHcByStatus(byStatusResponse.data);
+
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -53,7 +60,6 @@ const HomeDashboardComponent = () =>{
     const drawChart = useCallback((chartContainer) => {
         // Clear previous chart
         d3.select(chartContainer).selectAll("*").remove();
-      
 
         // Set dimensions
         const width = 900;
@@ -95,7 +101,7 @@ const HomeDashboardComponent = () =>{
             .range(["#004569", "#FF1918"]);
 
         // Line generator
-        const line = d3.line()
+        const line = d3.line()      
             .x(d => x0(d.month) + x0.bandwidth() / 2) // Center the points in each month
             .y(d => yLine(d.headcount));  
 
@@ -145,47 +151,85 @@ const HomeDashboardComponent = () =>{
         }, [drawChart]);
 
     return(
-
-   
-   
-
-        <div className="container mt-4">
+        <div className="container">           
             <h2>Dashboards</h2>
-            <table align="center" class="table table-borderless ">
-            <tbody>
-                <tr >
-                    <td style={{ width: "10%" }} valign="middle" align="center"><img src={usFlag} alt="US Flag" width="80" height="48"/></td>
-                    <td style={{ width: "5%" }} valign="middle" align="center"><h2>{getTotalByCountry("USA")}</h2></td>
-                    <td style={{ width: "10%" }} valign="middle" align="center"></td>
-                    <td style={{ width: "10%" }} valign="middle" align="center"><img src={mes} alt="Engagement" width="60" height="48"/></td>
-                    <td style={{ width: "5%" }} valign="middle" align="center"><h2>{getTotalByCompany("ES")}</h2></td>
+            <div className="row">
+                <div className="col-sm-3">
+                    <table align="left" className="table table-borderless small"  >
+                    <tbody>
+                        <tr >
+                            <td style={{ width: "10%" }} valign="middle" align="center"><img src={usFlag} alt="US Flag" width="80" height="48"/></td>
+                            <td style={{ width: "5%" }} valign="middle" align="center"><h2>{getTotalByCountry("USA")}</h2></td>
+                            <td style={{ width: "70%" }} valign="middle" align="center"></td>
+                            <td style={{ width: "10%" }} valign="middle" align="center"><img src={mes} alt="Engagement" width="60" height="48"/></td>
+                            <td style={{ width: "5%" }} valign="middle" align="center"><h2>{getTotalByCompany("ES")}</h2></td>
 
-                </tr>
-                <tr>
-                    <td valign="middle" align="center"><img src={mxFlag} alt="MX Flag" width="80" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCountry("Mexico")}</h2></td>
-                    <td ></td>
-                    <td valign="middle" align="center"><img src={bes} alt="MX Flag" width="80" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCompany("BES")}</h2></td>
-                </tr>    
-                <tr>
-                    <td valign="middle" align="center"><img src={colFlag} alt="CO Flag" width="80" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCountry("Colombia")}</h2></td>
-                    <td ></td>
-                    <td valign="middle" align="center"><img src={auto} alt="CO Flag" width="80" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCompany("AS")}</h2></td>
-                </tr>    
-                <tr>
-                    <td valign="middle" align="center"><img src={inFlag} alt="IN Flag" width="80" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCountry("India")}</h2></td>
-                    <td ></td>
-                    <td valign="middle" align="center"><img src={mits} alt="IN Flag" width="60" height="48"/></td>
-                    <td valign="middle" align="center"><h2>{getTotalByCompany("MITS")}</h2></td>
-                </tr>    
+                        </tr>
+                        <tr>
+                            <td valign="middle" align="center"><img src={mxFlag} alt="MX Flag" width="80" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCountry("Mexico")}</h2></td>
+                            <td ></td>
+                            <td valign="middle" align="center"><img src={bes} alt="MX Flag" width="80" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCompany("BES")}</h2></td>
+                        </tr>    
+                        <tr>
+                            <td valign="middle" align="center"><img src={colFlag} alt="CO Flag" width="80" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCountry("Colombia")}</h2></td>
+                            <td ></td>
+                            <td valign="middle" align="center"><img src={auto} alt="CO Flag" width="80" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCompany("AS")}</h2></td>
+                        </tr>    
+                        <tr>
+                            <td valign="middle" align="center"><img src={inFlag} alt="IN Flag" width="80" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCountry("India")}</h2></td>
+                            <td ></td>
+                            <td valign="middle" align="center"><img src={mits} alt="IN Flag" width="60" height="48"/></td>
+                            <td valign="middle" align="center"><h2>{getTotalByCompany("MITS")}</h2></td>
+                        </tr>    
+                    </tbody>                
+                    </table>
+                </div>
+                <div className="col-sm-3"></div>
+                <div className="col-sm-3">
+                    <table className="table table-bordered table-sm">
+                        <thead className="table-dark">
+                        <tr>
+                            <th className="p-0">Status</th>
+                            <th className="p-0">Headcount</th>                                     
+                        </tr>            
+                        </thead>
+                        <tbody>
+                            {hcByStatus.map((status) => (
+                            <tr key={status.status}>
+                                <td className="p-0" align='left'>{status.status}</td>
+                                <td className="p-0" align='middle'>{status.Total}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>                
 
-            </tbody>                
-            </table>
-
+                <div className="col-sm-3">
+                    <table className="table table-bordered table-sm">
+                    <thead className="table-dark">
+                    <tr>
+                        <th className="p-0">City</th>
+                        <th className="p-0">Headcount</th>
+                        <th className="p-0">Percentage</th>                
+                    </tr>            
+                    </thead>
+                    <tbody>
+                        {hcByCity.map((city) => (
+                        <tr key={city.City_Name}>
+                            <td className="p-0" align='left'>{city.City_Name}</td>
+                            <td className="p-0" align='middle'>{city.Count}</td>
+                            <td className="p-0" align='middle'>{city.Percentage}%</td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
             <table className="table table-bordered text-center align-middle">
                     <tbody>
                     <tr>
@@ -198,41 +242,7 @@ const HomeDashboardComponent = () =>{
                     </tr>
                 </tbody>
                 </table>         
-
-                {/* Tables 
-                <table className="table table-bordered text-center align-middle">
-                <tbody>
-                    <tr className="table-dark" style={{ height: "10%" }}>
-                        <td colSpan="2"><strong>Title 1</strong></td>
-                        <td colSpan="2"><strong>Title 2</strong></td>
-                    </tr>
-                    <tr style={{ height: "40%" }}>
-                        <td colSpan="2">
-                            <div ref={(el) => (chartRefs.current[0] = el)} className="chart-placeholder bg-light p-3"></div>
-                            
-                        </td>
-                        <td colSpan="2">
-                            <div ref={(el) => (chartRefs.current[1] = el)} className="chart-placeholder bg-light p-3"></div>
-                        </td>
-                    </tr>
-
-                    <tr className="table-dark" style={{ height: "10%" }}>
-                        <td colSpan="2"><strong>Title 3</strong></td>
-                        <td colSpan="2"><strong>Title 4</strong></td>
-                    </tr>
-                    <tr style={{ height: "40%" }}>
-                        <td colSpan="2">
-                            <div ref={(el) => (chartRefs.current[2] = el)} className="chart-placeholder bg-light p-3"></div>
-                        </td>
-                        <td colSpan="2">
-                            <div ref={(el) => (chartRefs.current[3] = el)} className="chart-placeholder bg-light p-3"></div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            */}
-
-        </div>
+  </div>
     );
 };
 
