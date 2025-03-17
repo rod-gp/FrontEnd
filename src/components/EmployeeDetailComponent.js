@@ -157,7 +157,7 @@ const formatDateForInput = (dateString) => {
     {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
     <form onSubmit={handleSubmit} className="employee-form">
-      <table className="table table-bordered">
+      <table className="table table-bordered" style={{ width: '500px' }}>
         <tbody>
           <tr>
             <th>Employee ID</th>

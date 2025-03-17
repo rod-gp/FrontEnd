@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import "bootstrap/dist/css/bootstrap.min.css";
+//import "bootstrap/dist/css/bootstrap.min.css";
 import EmployeeProjectDataService from "../services/employeeProject.service";
 import maritzProjectDataService from "../services/maritzProject.service";
+import roleDataService from "../services/role.service";
+
 
 
 const TableTransfer = () => {
  
 
-
+  const [roles, setRoles]=useState([]);
   const [projects, setProjects] = useState([]); 
   const [activeProject, setActiveProject] = useState("");
   const [isNewProject, setIsNewProject] = useState(true);  
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Initial available items
   const [availableItems, setAvailableItems] = useState([]);
@@ -27,6 +31,13 @@ const TableTransfer = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
 
+  //get all projects 
+    useEffect(() => {
+      roleDataService.getRoles()
+      .then((response) => setRoles(response.data))
+      .catch((error) => console.error('Error fetching list of Roles:', error));
+  }
+  , []);
 
   //get all projects 
     useEffect(() => {
@@ -85,14 +96,18 @@ const TableTransfer = () => {
         EmployeeID: emp.EmployeeID,
         Maritz_ProjectID: activeProject,
         Start_Date: emp.Start_Date,
-        End_Date: emp.End_Date
+        End_Date: emp.End_Date,
+        RoleID: emp.RoleID
       }));
 
       try {
         const response = await EmployeeProjectDataService.assign(activeProject,tmp);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 2000);
       }
       catch(err){
-        console.error('Error assigning Employees:', err);
+        setSuccess(true);
+        setErrorMessage('Error assigning Employees:'+err);
       }
     };
 
@@ -109,7 +124,8 @@ const TableTransfer = () => {
               EmployeeID: emp.EmployeeID,
               Name: emp.Employee.Name,
               Start_Date: emp.Start_Date,
-              End_Date: emp.End_Date
+              End_Date: emp.End_Date,
+              RoleID: emp.RoleID
             }));
             
             
@@ -149,7 +165,7 @@ const dateChange = (e, index) => {
   return (
     <div className="container mt-5">
 
-      <div className="mb-3">
+      <div className="mb-3 content-center">
         <label className="me-2 fw-bold">Select the Project:</label>
         <select
           className="form-select d-inline-block w-auto"
@@ -164,23 +180,31 @@ const dateChange = (e, index) => {
               ))}
         </select>
       </div>
-     
+      {success && <div className="alert alert-success">Save successfull!</div>}
+            {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
      
       { !isNewProject && (
                  <>
+      <div className="row content-center mt-5 mb-5">
+      <div className='col-8'>
 
       <h2 className="text-center mb-4">Assign to Project {getProjectName(activeProject)}</h2>
-      <input
+        </div>
+        <div className='col-4'>
+            <input
                 type="text"
                 className="form-control mb-2"
                 placeholder="Search by name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            />  
+            </div>
+          </div>
 
-      <div className="row justify-content-center">
+<div className="row content-center">
+ 
         {/* Available Items Table */}
-        <div className="col-md-4">
+        <div className="col-4">
           <h5 className="text-center">Available Employees</h5>
           <table className="table table-bordered">
                 <thead className="table-dark">
@@ -210,7 +234,7 @@ const dateChange = (e, index) => {
         </div>
 
         {/* Move Buttons */}
-        <div className="col-md-2 d-flex flex-column align-self-start align-items-center justify-content-center">
+        <div className="col-2 d-flex flex-column align-self-start align-items-center justify-content-center">
          <table> 
          <tbody>
          <tr style={{height: '30px'}}>
@@ -251,14 +275,15 @@ const dateChange = (e, index) => {
           </table>
         </div>
         {/* Selected Items Table */}
-        <div className="col-md-4">
+        <div className="col-6">
           <h5 className="text-center">Selected Employee</h5>
-          <table className="table table-bordered" style={{width: '600px'}}>
+          <table className="table table-bordered" style={{width: '700px'}}>
             <thead className="table-dark">
               <tr>
                 <th>Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
+                <th>Role</th>
               </tr>
             </thead>
             <tbody>
@@ -269,9 +294,24 @@ const dateChange = (e, index) => {
                   onClick={() => toggleSelectSelected(item)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td valign='middle' style={{ width: '80%' }} >{item.Name}</td>
-                  <td valign='middle' style={{ width: '10%' }}><input name ='Start_Date' type ='date' onChange={(e) => dateChange(e, index)} value={item.Start_Date?.split("T")[0] || ""}  className="form-control" /></td>
-                  <td valign='middle'  style={{ width: '10%' }}><input name ='End_Date' type ='date' onChange={(e) => dateChange(e, index)} value={item.End_Date?.split("T")[0] || ""} className="form-control" /></td>
+                  <td valign='middle' style={{ width: '50%' }} >{item.Name}</td>
+                  <td valign='middle' style={{ width: '10%' }}><input name ='Start_Date' style={{width: '130px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.Start_Date?.split("T")[0] || ""}  className="form-control" /></td>
+                  <td valign='middle'  style={{ width: '10%' }}><input name ='End_Date' style={{width: '130px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.End_Date?.split("T")[0] || ""} className="form-control" /></td>
+                  <td valign='middle'  style={{ width: '30%' }}>
+                    <select
+                        name="RoleID"
+                        className="form-control" 
+                        value={item.RoleID}
+                        onChange={(e) => dateChange(e, index)}
+                      >
+                    <option value="">-- Role --</option>
+                      {roles.map((roles) => (
+                      <option key={roles.RoleID} value={roles.RoleID}>
+                        {roles.Role_Name}
+                      </option>
+                     ))}
+                    </select>               
+                  </td>
                 </tr>
               ))}
             </tbody>

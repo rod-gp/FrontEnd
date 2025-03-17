@@ -150,8 +150,8 @@ const  ManagerDetailComponent= () => {
   return (
 
 
-    <div className="container mt-5">
-    <div className="card shadow-lg p-4">
+    <div className="container mt-5" style={{ width: '500px' }}>
+
       <h2 className="text-center mb-4">{id==='0'?'Create':'Update'} Manager</h2>
 
         {success && <div className="alert alert-success">Manager {id==='0'?'Created':'updated'}  successfully! Redirecting...</div>}
@@ -277,7 +277,7 @@ const  ManagerDetailComponent= () => {
             </button>
           </div>
         </form>
-      </div>
+      
     </div>
   );
 

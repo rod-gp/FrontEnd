@@ -10,6 +10,7 @@ import SofttekProjectsRoutes from './routes/SofttekProjectRoutes';
 import MaritzProjectsRoutes from './routes/MaritzProjectRoutes';
 import DashboardRoutes from './routes/DashboardRoutes';
 import FinanceRoutes from './routes/FinanceRoutes';
+import RolesRoutes from './routes/RolesRoutes';
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
 
@@ -35,6 +36,10 @@ function App() {
                     <li className="nav-item">
                       <Link className="nav-link" to="/employee/List/1">Inactive</Link>
                     </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/role">Roles</Link>
+                    </li>
+
                   </ul>
             </li>
             <li className="nav-item"><Link className="nav-link" to="/city">City</Link></li>            
@@ -86,6 +91,7 @@ function App() {
             <Route path="/city/*" element={<CityRoutes/> } />       
             <Route path="/employee/*" element={<EmployeeRoutes />} />
             <Route path="/manager/*" element={<ManagerRoutes />} />
+            <Route path="/role/*" element={<RolesRoutes />} />
             <Route path="/wbs/*" element={<SofttekProjectsRoutes />} />        
             <Route path="/project/*" element={<MaritzProjectsRoutes />} />
             <Route path="/finance/*" element={<FinanceRoutes />} />
