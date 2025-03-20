@@ -11,6 +11,8 @@ import MaritzProjectsRoutes from './routes/MaritzProjectRoutes';
 import DashboardRoutes from './routes/DashboardRoutes';
 import FinanceRoutes from './routes/FinanceRoutes';
 import RolesRoutes from './routes/RolesRoutes';
+import RatecardRoutes from './routes/RatecardRoutes';
+
 
 const Home = () => <div><h2>Home</h2><p>Welcome to the Home Page</p></div>;
 
@@ -73,7 +75,7 @@ function App() {
                         <Link className="nav-link" to="/finance/backlog">Project Backlog</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link" to="/finance/backlog">Rate Card</Link>
+                        <Link className="nav-link" to="/ratecard">Rate Card</Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link" to="/finance/backlog">Taxonomy Cost</Link>
@@ -95,6 +97,8 @@ function App() {
             <Route path="/wbs/*" element={<SofttekProjectsRoutes />} />        
             <Route path="/project/*" element={<MaritzProjectsRoutes />} />
             <Route path="/finance/*" element={<FinanceRoutes />} />
+            <Route path="/ratecard/*" element={<RatecardRoutes />} />
+
 
 
             <Route path="/SofttekProjects" element={<TableTransfer />} />
