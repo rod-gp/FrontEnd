@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-//import "bootstrap/dist/css/bootstrap.min.css";
 import EmployeeProjectDataService from "../services/employeeProject.service";
 import maritzProjectDataService from "../services/maritzProject.service";
 import roleDataService from "../services/role.service";
@@ -31,7 +30,7 @@ const TableTransfer = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
 
-  //get all projects 
+  //get all Roles 
     useEffect(() => {
       roleDataService.getRoles()
       .then((response) => setRoles(response.data))
@@ -42,7 +41,10 @@ const TableTransfer = () => {
   //get all projects 
     useEffect(() => {
         maritzProjectDataService.getAllProjects()
-        .then((response) => setProjects(response.data))
+        .then((response) => {
+          const onlyActiveProjects = response.data.filter(project => project.Active === 1);
+          setProjects(onlyActiveProjects);
+        })
         .catch((error) => console.error('Error fetching list of Projects:', error));
     }
     , []);
@@ -56,7 +58,6 @@ const TableTransfer = () => {
     , [activeProject]);
  
   const getProjectName = (projectID) => {
-   // console.log("projectID", projectID);
       const pjt = projects.find(proj => Number(proj.Maritz_ProjectID) === Number(projectID)); 
       return pjt ? pjt.Project_Name : "Unknown Project"; 
   };

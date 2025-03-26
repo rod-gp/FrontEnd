@@ -111,3 +111,9 @@ button:disabled {
   color: red;
   font-size: 12px;
 }
+.nav-link {
+  cursor: pointer;
+}
+.collapse {
+  transition: all 0.3s ease;
+}

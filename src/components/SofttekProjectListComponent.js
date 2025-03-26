@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import softtekProjectDataService from "../services/softtekProject.service";
+import { NumericFormat } from "react-number-format";
 
 
 const SofttekProjectListComponent = () => {
@@ -40,7 +41,9 @@ const SofttekProjectListComponent = () => {
                     <td valign='middle'>{project.Project_WBS}</td>
                     <td valign='middle'>{new Date(project.Start_Date).toLocaleDateString()}</td>
                     <td valign='middle'>{new Date(project.End_Date).toLocaleDateString()}</td>
-                    <td valign='middle'>{project.TCV}</td>
+                    <td valign='middle' align ='right'>
+                    <NumericFormat value={project.TCV} displayType={'text'} thousandSeparator={true} prefix={'$'} decimalScale={2} fixedDecimalScale={true} />
+                    </td>
                     <td valign='middle'>{project.CRM_Opp}</td>
                     <td valign='middle'>{project.CRM_Order}</td>
                     <td valign='middle'>{project.Practice}</td>

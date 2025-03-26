@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import maritzProjectDataService from "../services/maritzProject.service";
+import { NumericFormat } from "react-number-format";
 
 const MaritzProjectListComponent = () => {
 
@@ -12,10 +13,6 @@ const MaritzProjectListComponent = () => {
         .catch((error) => console.error('Error fetching list of Projects:', error));
     }
     , []);
-    
-
-
-
 
     return(
         <div className="container mt-4">
@@ -32,6 +29,7 @@ const MaritzProjectListComponent = () => {
               <th>HC</th>
               <th>WBS</th>
               <th>Status</th>
+              <th>Monthly Rate</th>
               <th align ='center'>Action</th>
             </tr>
             </thead>
@@ -48,6 +46,9 @@ const MaritzProjectListComponent = () => {
                     <td valign='middle'>{project.employeeCount}</td>
                     <td valign='middle'>{project?.Softtek_Project.Project_WBS}</td>
                     <td valign='middle'>{project.Active === 0?'Inactive':'Active'}</td>
+                    <td valign='middle' align ='Right'>
+                         <NumericFormat value={project.Monthly_Rate} displayType={'text'} thousandSeparator={true} prefix={'$'} decimalScale={2} fixedDecimalScale={true} />
+                    </td>                       
                     <td valign='middle' align ='center'><Link to={`/project/${project.Maritz_ProjectID}`} 
                     className="btn btn-primary"
                     style={{ '--bs-btn-padding-y': '.01rem', '--bs-btn-padding-x': '.5rem', '--bs-btn-font-size': '.75rem' }} >
@@ -59,8 +60,6 @@ const MaritzProjectListComponent = () => {
             </table>
             <Link to={`/project/0`} className="btn btn-primary">Create New</Link>
         </div>
-
-
     );
 };
 export default MaritzProjectListComponent;

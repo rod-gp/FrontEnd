@@ -4,7 +4,8 @@ import maritzProjectDataService from "../services/maritzProject.service";
 import ManagerDataServices from '../services/manager.service';
 import SofttekProjectDataService from '../services/softtekProject.service';
 import employeeProjectDataService from '../services/employeeProject.service';
-
+import Constants from "../constants/Constants";
+import { NumericFormat } from "react-number-format";
 
 const MaritzProjectDetailComponent = () => {
 
@@ -21,7 +22,8 @@ const MaritzProjectDetailComponent = () => {
         Cost_Center: '',
         ManagerID: '',
         Softtek_ProjectID: '',
-        Active: 1
+        Active: 1,
+        Monthly_Rate: 0
     });
     const [errorMessage, setErrorMessage] = useState(''); 
     const [loading, setLoading] = useState(''); 
@@ -119,7 +121,11 @@ const MaritzProjectDetailComponent = () => {
                 setTimeout(() => navigate("/project"),2000); 
                 return;       
             } else {
-                await maritzProjectDataService.update(id, project);
+                const formattedProject = {
+                    ...project,
+                    Monthly_Rate: Number(project.Monthly_Rate), // Ensure it's sent as a number
+                };
+                await maritzProjectDataService.update(id, formattedProject);
                 setSuccess(true);
                 setTimeout(() => navigate("/project"),2000);
                 return;
@@ -148,6 +154,7 @@ const MaritzProjectDetailComponent = () => {
                 {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
                 <table>
+                    <tbody>
                     <tr>
                     <td>
                     <h2>{isNewProject ? 'Create New Project' : 'Edit Project'}</h2>
@@ -167,8 +174,21 @@ const MaritzProjectDetailComponent = () => {
                             <td><input type="date" name="End_Date" value={project.End_Date?.split("T")[0] || ""} onChange={handleChange} className="form-control" required /></td>
                         </tr>
                         <tr>
-                            <td valign='middle'>SOW:</td>
-                            <td><input type="text" name="SOW_Name" value={project.SOW_Name} onChange={handleChange} className="form-control" /></td>
+                            <td valign='middle'>SOW Type:</td>
+                            <td>
+                            <select
+                                name="SOW_Name" 
+                                className="form-control" 
+                                value={project.SOW_Name}
+                                onChange={handleChange}            
+                            >
+                                <option value="" disabled>-- SOW Type --</option>
+                                    {Constants.SOW_TYPE.map((sow_type) => (
+                                    <option key={sow_type} value={sow_type}>
+                                        {sow_type}</option>
+                                    ))}
+                            </select> 
+                                </td>
                         </tr>
                         <tr>
                             <td valign='middle'>Cost Center:</td>
@@ -225,13 +245,30 @@ const MaritzProjectDetailComponent = () => {
                                 </select>
                             </td>
                         </tr>
+                        <tr>
+                            <td valign='middle'>Monthly Rate:</td>
+                            <td>
+                                <NumericFormat
+                                        name="Monthly_Rate"
+                                        value={project.Monthly_Rate || 0}
+                                        onValueChange={(values) => handleChange({ target: { name: "Monthly_Rate", value: values.floatValue ?? 0, } })}          
+                                        className={`form-control`}
+                                        thousandSeparator={true}
+                                        prefix="$"
+                                        decimalScale={2}
+                                        fixedDecimalScale={true}
+                                 />
+                              
+                                
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
                 <button type="submit" className="btn btn-success">{isNewProject ? 'Create' : 'Save'}</button>
                 <button type="button" className="btn btn-secondary ms-2" onClick={() => navigate('/project')}>Cancel</button>
             </form>
             
-            </td>
+                    </td>
                 <td style={{ width: '100px' }}> </td>
                 
   
@@ -267,6 +304,7 @@ const MaritzProjectDetailComponent = () => {
                         )}
                     
                     </tr>
+                    </tbody>
                 </table>
         </div>
     );

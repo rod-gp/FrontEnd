@@ -175,7 +175,7 @@ const RateCardComponent =() => {
 
           </div>
         <form>
-        <table className="table bordered table-sm" style={{ width: '800px' }}>
+        <table className="table bordered table-sm" style={{ width: '900px' }}>
         <thead className="table-dark">
         <tr>
        
@@ -201,10 +201,10 @@ const RateCardComponent =() => {
             return (  
 
             <tr key={item.RatecardID || index}>                
-                    <input type="hidden" name="Practice" value={item.Practice} />                
-                    <input type="hidden" name="Seniority" value={item.Seniority} />                              
+                                            
                  <td>
-                
+                 <input type="hidden" name="Practice" value={item.Practice} />                
+                    <input type="hidden" name="Seniority" value={item.Seniority} />     
                  <select
                     name="RoleID"
                     className={`form-control ${validated && !item.RoleID ? "is-invalid" : ""}`}
@@ -221,7 +221,7 @@ const RateCardComponent =() => {
                     {!item.RoleID && validated && <div className="invalid-feedback">Role is required.</div>}
                     </td>
             
-                    <td>
+                    <td align='center'>
 
                 <NumericFormat
                     name="Monthly_Rate"
