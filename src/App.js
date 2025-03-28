@@ -102,9 +102,9 @@ function App() {
                 </div>
             </li>
           </ul>
-          <div class="mt-auto p-2 text-left small text-muted">© 2025 Rod Garcia</div> 
+          <div className="mt-auto p-2 text-left small text-muted">© 2025 Rod Garcia</div> 
         </nav> 
-        <div className="p-4" >
+        <div className="container-lg ms-0 " >
           <Routes>
             <Route path="/" element={< Home />} />            
             <Route path="/dash/*" element={<DashboardRoutes />} />

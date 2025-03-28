@@ -24,8 +24,7 @@ const RolesListComponent = () => {
                     setSuccess(true);
                     setRoles(roles.filter(role => role.RoleID !== roleID));
                     setTimeout(() => setSuccess(false), 2000);
-                    // window.location.reload();
-                    // Refresh the page or update state here
+
                 } else {
                     setSuccess(false);
                     setErrorMessage("Failed to delete role.");
@@ -42,8 +41,8 @@ const RolesListComponent = () => {
                        
             <div className="container">
                 <div className="row">
-                    <div className="col-sm"><h2>Roles</h2></div>
-                    <div className="col-sm text-end">
+                    <div className="col-5"><h2>Roles</h2></div>
+                    <div className="col-7">
                         <Link to={`/role/0`} className="btn btn-primary">Add Role</Link>
                     </div>
               </div>

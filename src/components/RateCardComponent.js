@@ -21,7 +21,7 @@ const RateCardComponent =() => {
 
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async () => { 
             try {
                 const [countryList, rolesList, rowsList] = await Promise.all([
                     CityDataService.getCountries(),

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate  } from 'react-router-dom';
 import softtekProjectDataService from "../services/softtekProject.service";
+import { NumericFormat } from "react-number-format";
+import Constants from "../constants/Constants";
+import maritzProjectDataService from "../services/maritzProject.service";
 
 const SofttekProjectDetailComponent = () => {
 
@@ -21,14 +24,25 @@ const SofttekProjectDetailComponent = () => {
     const [loading, setLoading] = useState(true);
     const [success, setSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState(''); 
-
+    const [totalEmployeeCount, setTotalEmployeeCount] = useState(0);
+    const [totalMonthlyRate, setTotalMonthlyRate] = useState(0);
+    const [projects, setProjects] = useState([]); 
+ 
 
     useEffect(() => {
         const fetchProject = async () => {
         try{
           if (id !== '0') {
-            const response = await softtekProjectDataService.getProject(id);
-            setFormData(response.data);
+            const [project, maritz] = await Promise.all([
+            softtekProjectDataService.getProject(id),
+            maritzProjectDataService.getAllProjects()]);
+            
+            setFormData(project.data);
+            const filteredProjects = maritz.data.filter(item => item.Softtek_ProjectID === Number(id));        
+            setProjects(filteredProjects);
+            setTotalEmployeeCount(filteredProjects.reduce((sum, project) => sum + (project.employeeCount || 0), 0));
+            setTotalMonthlyRate(filteredProjects.reduce((sum, project) => sum + (parseFloat(project.Monthly_Rate) || 0), 0));
+            
           }
         } 
         catch(error){
@@ -75,15 +89,19 @@ const SofttekProjectDetailComponent = () => {
 
     return(
 
-    <div className="container mt-4">
+    <div className="container mt-4 row">
 
-    <h2>Edit Project</h2>
+
+      <div className="col-lg-6">
+        <h2>Edit Project</h2>
+
       <form onSubmit={handleSubmit}>
 
       {success && <div className="alert alert-success">Project updated successfully! Redirecting...</div>}
       {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
-        <table className="table table-bordered">
+
+        <table className="table table-bordered" style={{width: '400px'}}>
           <tbody>
             <tr>
               <td><label className="form-label">Project Name</label></td>
@@ -103,7 +121,17 @@ const SofttekProjectDetailComponent = () => {
             </tr>
             <tr>
               <td><label className="form-label">TCV</label></td>
-              <td><input type="number" className="form-control" name="TCV" value={formData.TCV || ""} onChange={handleChange} required /></td>
+              <td>
+                
+                <NumericFormat className="form-control" name="TCV" value={formData.TCV || ""} onChange={handleChange} 
+                thousandSeparator={true}
+                prefix="$"
+                decimalScale={2}
+                fixedDecimalScale={true}
+                required 
+                style={{ textAlign: 'right' }}/>
+           
+                </td>
             </tr>
             <tr>
               <td><label className="form-label">CRM Opportunity</label></td>
@@ -115,11 +143,40 @@ const SofttekProjectDetailComponent = () => {
             </tr>
             <tr>
               <td><label className="form-label">Practice</label></td>
-              <td><input type="text" className="form-control" name="Practice" value={formData.Practice || ""} onChange={handleChange} required /></td>
+              <td>
+              <select
+                    name="Practice" 
+                    className="form-control" 
+                    value={formData.Practice}
+                    onChange={handleChange}           
+                    >
+                      <option value="">-- Select Practice --</option>
+
+                      {Constants.PRACTICE.map((practice, index) => (
+                      <option key={index} value={practice}>
+                        {practice}</option>
+                     ))}
+                </select> 
+              </td>
+              
             </tr>
             <tr>
               <td><label className="form-label">Type</label></td>
-              <td><input type="text" className="form-control" name="Type" value={formData.Type || ""} onChange={handleChange} required /></td>
+              <td>
+              <select
+                    name="Type" 
+                    className="form-control" 
+                    value={formData.Type}
+                    onChange={handleChange}           
+                    >
+                      <option value="">-- Select SOW --</option>
+
+                      {Constants.SOW_TYPE.map((sow, index) => (
+                      <option key={index} value={sow}>
+                        {sow}</option>
+                     ))}
+                </select>                 
+                </td>
             </tr>
           </tbody>
         </table>
@@ -130,7 +187,53 @@ const SofttekProjectDetailComponent = () => {
       </form>
 
         </div>
+        <div className="col-lg-1"></div>
+        <div className="col-lg-5">
+    
+    
+    <h2>Projects on this WBS</h2>
 
+    <table className="table table-bordered" style={{width: '400px'}}>   
+    <thead className="table-dark">
+        <tr>
+        <th>Project Name</th>
+        <th>HC</th>
+        <th>Monthy Rate</th>
+        </tr>
+        </thead>
+      <tbody>
+        {projects.map((project, index) => (
+          <tr key={index}>
+            <td>{project.Project_Name}</td>
+            <td align='center'>{project.employeeCount}</td>
+            <td align='right'>
+            <NumericFormat displayType={'text'} value={project.Monthly_Rate} thousandSeparator={true}
+                prefix="$"
+                decimalScale={2}
+                fixedDecimalScale={true}
+                 /></td>
+          </tr>
+        ))}
+      
+      <tr className="table-light font-weight-bold">
+            <td><strong>Total</strong></td>
+            <td align='center'><strong>{totalEmployeeCount}</strong></td>
+            <td align='right'>
+                <strong>
+                    <NumericFormat displayType={'text'} value={totalMonthlyRate} thousandSeparator={true}
+                        prefix="$"
+                        decimalScale={2}
+                        fixedDecimalScale={true}
+                    />
+                </strong>
+            </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+    </div>
     );
 
 };

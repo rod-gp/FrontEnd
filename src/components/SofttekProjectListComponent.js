@@ -17,7 +17,7 @@ const SofttekProjectListComponent = () => {
 
     return(
         <div className="container mt-4">
-            <table className="table table-striped table-sm" style={{ width: '1200px' }}>
+            <table className="table table-striped table-sm" style={{ width: '1300px' }}>
             <thead className="table-dark">
             <tr>
               <th>ID</th>
@@ -29,7 +29,7 @@ const SofttekProjectListComponent = () => {
               <th>CRM Opportunity</th>
               <th>CRM Order</th>
               <th>Practice</th>
-              <th>Type</th>
+              <th>Type</th> 
               <th align ='center'>Action</th>
             </tr>
             </thead>
@@ -39,8 +39,8 @@ const SofttekProjectListComponent = () => {
                     <td valign='middle'>{project.Softtek_ProjectID}</td>
                     <td valign='middle'>{project.Project_Name}</td>
                     <td valign='middle'>{project.Project_WBS}</td>
-                    <td valign='middle'>{new Date(project.Start_Date).toLocaleDateString()}</td>
-                    <td valign='middle'>{new Date(project.End_Date).toLocaleDateString()}</td>
+                    <td valign='middle'>{new Date(project.Start_Date).toLocaleDateString('en-US', {timeZone: 'UTC'})}</td>                    
+                    <td valign='middle'>{new Date(project.End_Date).toLocaleDateString('en-US', {timeZone: 'UTC'})}</td>
                     <td valign='middle' align ='right'>
                     <NumericFormat value={project.TCV} displayType={'text'} thousandSeparator={true} prefix={'$'} decimalScale={2} fixedDecimalScale={true} />
                     </td>
