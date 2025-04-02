@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
 import maritzProjectDataService from "../services/maritzProject.service";
 import financeDataService from "../services/finance.service";
 import Constants from "../constants/Constants";
-import EDS from '../services/employeeProject.service';
+import employeeProjectDataService from '../services/employeeProject.service';
 import { NumericFormat } from "react-number-format";
 
 const BacklogComponent =() => {
 
-    const [activeProject, setActiveProject] = useState("");
-    const [colorOfMoney, setColorOfMoney] = useState("");
+    const [activeProjectId, setActiveProjectId] = useState("");
+    const [theProject, setTheProject] = useState("");
+   
     const [recordType, setRecordType] = useState("");
-    const [year, setYear] = useState("");
+    const [year, setYear] = useState(new Date().getFullYear());
     
     const [visible, setVisible] = useState(false);
     const [projects, setProjects] = useState([]);
@@ -20,29 +22,51 @@ const BacklogComponent =() => {
     const [formattedData, setFormattedData] = useState([]);
     const [editedData, setEditedData] = useState([]);
 
+    const { type } = useParams(); 
+    const [colorOfMoney, setColorOfMoney] = useState(type);
+    
+
+
+
     //get all projects 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [marProjects] = await Promise.all([
+                const [marProjects, workdays] = await Promise.all([
                 
-                maritzProjectDataService.getAllProjects() ]);
+                maritzProjectDataService.getAllProjects(),
+                financeDataService.getDaysPerMonth(year)
+            
+            ]);
 
                 const onlyActiveProjects = marProjects.data.filter(project => project.Active === 1);
+
+
                 setProjects(onlyActiveProjects);
+                setWorkingDays(workdays.data);
             }
             catch(error){ 
                 console.error('Error fetching list of Projects:', error);
             }
         }
         fetchData();
-    }, []);
+    }, [type]);
 
-    const handleProjectChange = (e) => {
-        setActiveProject(e.target.value);
-        EDS.getEmployeesAssignedToProject(e.target.value)
+    function getProjectById(projectID) {
+
+        const tmp = projects.find(project => parseInt(project.Maritz_ProjectID) === parseInt(projectID));
+        
+        setTheProject(tmp); 
+        
+        return tmp;
+    }
+
+    const handleProjectChange = async (e) => {
+        setActiveProjectId(e.target.value);
+        await employeeProjectDataService.getEmployeesAssignedToProject(e.target.value)
         .then((response) => {
             setPeopleProject(response.data);
+            getProjectById(e.target.value);               
             setVisible(false);
         })        
         .catch((e) => {
@@ -55,10 +79,6 @@ const BacklogComponent =() => {
         setVisible(false);
     };
     
-    const handleColorOfMoneyChange = (e) => {
-        setColorOfMoney(e.target.value);
-        setVisible(false);
-    };
     
     const handleRecordTypeChange = (e) => {
         setRecordType(e.target.value);
@@ -78,8 +98,9 @@ const BacklogComponent =() => {
             setFormattedData([]);
             setEditedData([]);
 
-            const bcklog = await financeDataService.getBacklog(activeProject, year,colorOfMoney,recordType,);
-            setBacklog(bcklog.data);      
+            const bcklog = await financeDataService.getBacklog(activeProjectId, year,colorOfMoney,recordType,);
+
+            setBacklog(bcklog.data);              
             setVisible(true);
 
         } catch (error) {
@@ -132,9 +153,9 @@ const BacklogComponent =() => {
         });
 
         setFormattedData(Object.values(transformedData));
+    
         
-        
-    }, [backlog]);
+    }, [backlog],[formattedData]);
 
 
     const handleInputChange = (employeeId, monthIndex, field, value) => {
@@ -151,11 +172,48 @@ const BacklogComponent =() => {
       };
 
 
+      const calculate = () => {
+
+        const theDate = formattedData.map(row => {
+  
+            const empData = peopleProject.find(employee => 
+                parseInt(employee.EmployeeID) === parseInt(row.EmployeeID)
+            );
+
+            if (!empData || !empData.Role.Ratecards[0]) {
+                console.warn(`Missing data for EmployeeID: ${row.EmployeeID}`);
+                return row; // Return the original row if data is missing
+            }
+
+                            
+            const rc = empData.Role.Ratecards.find(rc => rc.Country === empData.Employee.City.Country);
+
+            const updatedMonthlyRate = row.Monthly_Rates.map((_, monthIndex) => {
+
+                if(theProject.SOW_Name ==="Staff Augmentation"){
+                    const hrRate = parseFloat(rc.Hourly_Rate);
+                    const wd = workingDays.find(wd => parseInt(wd.WDMID) === monthIndex + 1);
+                    return wd ? hrRate * parseFloat(wd.Days) * 8 : 0;
+                }
+                else{                    
+                    return parseFloat(rc.Monthly_Rate) || 0;
+                }
+
+                
+            });
+    
+            return {
+                ...row,
+                Monthly_Rates: updatedMonthlyRate,
+            };
+   
+        });
+
+        setFormattedData(theDate);
+      }
+
       const handleSave = async () => {
         try {
-           // console.log(formattedData);
-           // console.log(editedData);
-
             const updatedData = formattedData.map(employee => {
                 const { EmployeeID, Monthly_Rates } = employee;
                 
@@ -180,9 +238,9 @@ const BacklogComponent =() => {
                     Monthly_Rates
                 };
             });
-            console.log(updatedData);
+            //console.log(updatedData);
 
-            const bcklog = await financeDataService.updateBacklog(activeProject, year, colorOfMoney,recordType,updatedData);
+            await financeDataService.updateBacklog(activeProjectId, year, colorOfMoney,recordType,updatedData);
    
         } catch (error) {
           console.error("Error saving data:", error);
@@ -193,24 +251,9 @@ const BacklogComponent =() => {
     return(
 
         <div className="container-fluid  mt-4">
-            <h2>Finance Data</h2>
+            <h2>{type} Data</h2>
             
             <div className="row">
-                <div className="col d-flex align-items-center">
-                    <label className="fw-bold">Color of $:</label>
-                          
-                    <select
-                    name="COLOR_OF_MONEY" 
-                    className="form-select d-inline-block w-auto" 
-                    value={colorOfMoney}
-                    onChange={handleColorOfMoneyChange}                 
-                    >
-                        <option value="">--Money--</option>
-                        {Constants.COLOR_OF_MONEY.map((practice, index) => (
-                            <option key={index} value={practice}>{practice}</option>
-                        ))}
-                    </select> 
-                </div>
                 <div className="col d-flex justify-content-start align-items-center">
                     <label className="fw-bold">Year:</label>
                     <select
@@ -231,7 +274,7 @@ const BacklogComponent =() => {
 
                     <select
                         className="form-select d-inline-block w-auto"
-                        value={activeProject}
+                        value={activeProjectId}
                         onChange={handleProjectChange}
                     >
                         <option value="">Select a Project </option>  
@@ -261,10 +304,44 @@ const BacklogComponent =() => {
                 
                 </div>
                 <div className="col d-flex justify-content-end align-items-center">
-                    <button className="btn btn-primary m-1 " onClick={getBacklog} disabled={!(activeProject && year && colorOfMoney && recordType)}>Get Backlog</button>
-                    <button className="btn btn-primary m-1 "  onClick={getBacklog} disabled={!(activeProject && year && colorOfMoney && recordType)}>Calculate</button>
+                    <button className="btn btn-primary m-1 " onClick={getBacklog} disabled={!(activeProjectId && year && colorOfMoney && recordType)}>Get Backlog</button>
+                    <button className="btn btn-primary m-1 " onClick={calculate} disabled={!(activeProjectId && year && colorOfMoney && recordType)}>Calculate</button>
                 </div>
-                
+        
+                <div className='row '>
+                    <div className='col '>
+                    <label className='text-center'>  {theProject && <>Project Type: <b>{theProject.SOW_Name}</b></>}</label>
+                    </div>
+                    <div className='col '>
+                        <label className='text-center'> {theProject && theProject.SOW_Name !=="Staff Augmentation" && <> Original Monthly Rate: <b>{
+                        
+                        <NumericFormat 
+                                value={ theProject.Monthly_Rate}                         
+                                displayType="text"
+                                thousandSeparator={true}
+                                prefix="$"
+                                decimalScale={2}
+                                fixedDecimalScale={true}
+                            />
+                        } </b> </>}</label>
+                    </div>
+                    <div className='col '>
+                        
+                        <label> {theProject&& <> Softtek WBS: <b> {theProject.Softtek_Project?.Project_WBS }</b></> }  </label>
+                    </div>
+                </div>
+                <div className='row'>
+                    <div className='col'>
+                    <label className='text-center'> {theProject && <> Manager: <b>{theProject.Manager?.Name} </b></>}</label>
+                    </div>
+                    <div className='col'>
+                        <label> {theProject && <> Softtek Practice: <b>{theProject.Softtek_Project?.Practice }</b></> } </label>
+                    </div>
+
+                    <div className='col'>
+                        <label> {theProject && <> Softtek WBS Name: <b>{theProject.Softtek_Project?.Project_Name }</b></> } </label>
+                    </div>
+                </div>
             </div>
 
             {visible && (
@@ -272,14 +349,25 @@ const BacklogComponent =() => {
         
             <table className="table small"  >
                 <thead>
-                    <tr><th colSpan="13" style={{ height: '30px' }}></th></tr>
-                    
+                    <tr><th colSpan="13" style={{ height: '60px' }}></th></tr>                    
                 </thead>
                 <tbody>
+
+                { theProject.SOW_Name ==="Staff Augmentation" &&(
+                    <tr className="table-dark" style={{ height: '20px' }}>
+                        <td style={{ fontSize: "10px", width: '20%' }}><b>Working Days</b></td>
+                        {workingDays.map(month => (
+                            <td key={month.WDMID} align='center' style={{ fontSize: "10px",textAlign: "center"  }}   ><b>{month.Days}</b></td>
+                        ))}                    
+                    </tr>
+                    ) 
+                }
+
+
                 <tr className="table-dark">
-                    <td style={{ width: '20%' }}><b>Employee</b></td>
+                    <td style={{ fontSize: "11px", width: '20%' }}><b>Employee</b></td>
                         {Constants.MONTHS.map(month => (
-                            <td key={month} align='center'><b>{formatMonth(month, year)}</b></td>
+                            <td key={month} align='center' style={{ fontSize: "11px",textAlign: "center"  }} ><b>{formatMonth(month, year)}</b></td>
                         ))}
                 </tr>   
                     {formattedData.map(({ EmployeeID, Name, Monthly_Rates }) => (
@@ -302,6 +390,34 @@ const BacklogComponent =() => {
                     </tr>
                     ))}
                 </tbody>
+ 
+                <tfoot>
+                    <tr>
+                    <td><strong>Total</strong></td>
+                    {
+                        
+                    Array.from({ length: 12 }).map((_, monthIndex) => {
+                        const total = formattedData.reduce(
+                            (sum, { Monthly_Rates }) => sum + parseFloat(Monthly_Rates[monthIndex] || 0),
+                        0
+                        );
+                        
+                        return (
+                        <td key={monthIndex} style={{ textAlign: "right", fontWeight: "bold" }}>
+                            <NumericFormat 
+                            value={total}
+                            displayType="text"
+                            thousandSeparator={true}
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            />
+                        </td>
+                        );
+                    })}
+                    </tr>
+                </tfoot>
+
+
                 </table>        
                 <button onClick={handleSave}>Save Changes</button>     
             </div>

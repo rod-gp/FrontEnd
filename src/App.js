@@ -87,13 +87,19 @@ function App() {
                         <Link className="nav-link" to="/finance">Invoices</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link" to="/finance/backlog">Project Backlog</Link>
+                        <Link className="nav-link" to="/finance/Backlog">Backlog</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance/Actual">Actual</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/finance/Plan">Plan</Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link" to="/ratecard">Rate Card</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link" to="/finance/backlog">Taxonomy Cost</Link>
+                        <Link className="nav-link" to="/finance/taxonomy">Taxonomy Cost</Link>
                     </li>
                     <li className="nav-item">
                         <Link className="nav-link" to="/finance/dayspermonth">Days Per Month</Link>

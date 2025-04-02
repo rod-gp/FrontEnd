@@ -9,7 +9,8 @@ const FinanceRoutes = () => {
         <Routes>
             <Route path="/" element={<Invoice />} /> 
             <Route path="/invoice/" element={<Invoice />} /> 
-            <Route path="/backlog/" element={<Backlog />} /> 
+            <Route path="/:type/" element={<Backlog />} />
+
             <Route path="/ratecard/" element={<RateCard />} /> 
             <Route path="/dayspermonth/" element={<DaysPerMonthComponent />} />
 

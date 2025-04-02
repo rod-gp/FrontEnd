@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import EmployeeProjectDataService from "../services/employeeProject.service";
 import maritzProjectDataService from "../services/maritzProject.service";
 import roleDataService from "../services/role.service";
+import rateCardDataService from "../services/ratecard.service";
 
 
 
@@ -9,6 +10,7 @@ const TableTransfer = () => {
  
 
   const [roles, setRoles]=useState([]);
+  const [rateCard, setRateCard] = useState([]);
   const [projects, setProjects] = useState([]); 
   const [activeProject, setActiveProject] = useState("");
   const [isNewProject, setIsNewProject] = useState(true);  
@@ -32,12 +34,27 @@ const TableTransfer = () => {
 
   //get all Roles 
     useEffect(() => {
-      roleDataService.getRoles()
-      .then((response) => setRoles(response.data))
-      .catch((error) => console.error('Error fetching list of Roles:', error));
-  }
-  , []);
+      const fetchData = async () => { 
+        try {
+          const [rolesList, rateCardList, projectList] = await Promise.all([
+                roleDataService.getRoles(), 
+                rateCardDataService.find(),
+                maritzProjectDataService.getAllProjects()             
+              ]);
+                setRoles(rolesList.data);
+                setRateCard(rateCardList.data);
+                const onlyActiveProjects = projectList.data.filter(project => project.Active === 1);
+                setProjects(onlyActiveProjects);
+        } 
+          catch(error){
+              console.error('Error fetching list of Roles:', error);
+          }          
+      };
+   
+      fetchData();
 
+    }, []);
+/*
   //get all projects 
     useEffect(() => {
         maritzProjectDataService.getAllProjects()
@@ -48,7 +65,8 @@ const TableTransfer = () => {
         .catch((error) => console.error('Error fetching list of Projects:', error));
     }
     , []);
- 
+ */
+
      //get all unassigned employees
     useEffect(() => {     
         EmployeeProjectDataService.getUnassignedEmployees()
@@ -126,7 +144,8 @@ const TableTransfer = () => {
               Name: emp.Employee.Name,
               Start_Date: emp.Start_Date,
               End_Date: emp.End_Date,
-              RoleID: emp.RoleID
+              RoleID: emp.RoleID,
+              Country: emp.Employee.City.Country
             }));
             
             
@@ -162,6 +181,20 @@ const dateChange = (e, index) => {
     )
   );
 };
+
+const filterRolesByCountry = (country) => {
+  
+  const validRoleIDs = new Set(
+    rateCard
+          .filter(ratecard => ratecard.Country === country)
+          .map(ratecard => ratecard.RoleID)
+  );
+
+  // Filter roles that have a matching RoleID in validRoleIDs
+  return roles.filter(role => validRoleIDs.has(role.RoleID));
+};
+
+
 
   return (
     <div className="container mt-5">
@@ -295,18 +328,19 @@ const dateChange = (e, index) => {
                   onClick={() => toggleSelectSelected(item)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td valign='middle' style={{ width: '50%' }} >{item.Name}</td>
-                  <td valign='middle' style={{ width: '10%' }}><input name ='Start_Date' style={{width: '130px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.Start_Date?.split("T")[0] || ""}  className="form-control" /></td>
-                  <td valign='middle'  style={{ width: '10%' }}><input name ='End_Date' style={{width: '130px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.End_Date?.split("T")[0] || ""} className="form-control" /></td>
-                  <td valign='middle'  style={{ width: '30%' }}>
+                  <td valign='middle' style={{ width: '35%'}} >{item.Name}</td>
+                  <td valign='middle' ><input name ='Start_Date' style={{width: '120px', fontSize: '14px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.Start_Date?.split("T")[0] || ""}  className="form-control" /></td>
+                  <td valign='middle' ><input name ='End_Date' style={{width: '120px', fontSize: '14px'}} type ='date' onChange={(e) => dateChange(e, index)} value={item.End_Date?.split("T")[0] || ""} className="form-control" /></td>
+                  <td valign='middle'>
                     <select
                         name="RoleID"
                         className="form-control" 
                         value={item.RoleID}
+                        style={{fontSize: '14px'}}
                         onChange={(e) => dateChange(e, index)}
                       >
                     <option value="">-- Role --</option>
-                      {roles.map((roles) => (
+                      {filterRolesByCountry(item.Country).map((roles) => (
                       <option key={roles.RoleID} value={roles.RoleID}>
                         {roles.Role_Name}
                       </option>
