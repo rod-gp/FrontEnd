@@ -41,15 +41,6 @@ useEffect(() => {
 }, []);
 
 
-// Safely handling Date formatting (Date object)
-const formatDateForInput = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is 0-based, so we add 1
-  const day = String(date.getDate()).padStart(2, "0"); // Pad single digits with leading 0
-  return `${year}-${month}-${day}`; // Format as yyyy-MM-dd
-};
 
 
 //get the employee details
@@ -80,12 +71,14 @@ const formatDateForInput = (dateString) => {
     const errors={};
     if (!formData.Name.trim()) errors.Name = 'Name is required.';
    
+    /*
     if (formData.SAPID === null) {
       errors.SAPID = 'SAPID is required.';
     } else if (!Number(formData.SAPID)) {
       errors.SAPID = 'SAPID must be a number.';
     }
-   
+   */
+  
     return errors;
   };
   
@@ -161,7 +154,7 @@ const formatDateForInput = (dateString) => {
         <tbody>
           <tr>
             <th>Employee ID</th>
-            <td>{formData.EmployeeID}
+            <td>{formData.EmployeeID===0?'':formData.EmployeeID}
             <input
               type="hidden"
               name="EmployeeID"
@@ -193,7 +186,7 @@ const formatDateForInput = (dateString) => {
                 type="date"
                 name="Start_Date"
                 className="form-control"
-                value={formatDateForInput(formData.Start_Date)}
+                value={formData.Start_Date.split('T')[0]}
                 onChange={handleChange}
               />
             </td>
@@ -205,7 +198,7 @@ const formatDateForInput = (dateString) => {
                 type="date"
                 name="End_Date"
                 className="form-control"
-                value={formatDateForInput(formData.End_Date)}
+                value={formData.End_Date.split('T')[0]}
                 onChange={handleChange}
               />
             </td>
@@ -271,7 +264,7 @@ const formatDateForInput = (dateString) => {
             <input
                 type="text"
                 name="SAPID"
-                value={formData.SAPID==='null' ? '' : formData.SAPID}
+                value={formData.SAPID && formData.SAPID !== 'null' ? formData.SAPID : ''}
                 onChange={handleChange}
                 className={`form-control ${validationErrors.SAPID ? 'is-invalid' : ''}`}
               />

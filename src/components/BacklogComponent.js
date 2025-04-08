@@ -181,7 +181,7 @@ const BacklogComponent =() => {
             );
 
             if (!empData || !empData.Role.Ratecards[0]) {
-                console.warn(`Missing data for EmployeeID: ${row.EmployeeID}`);
+                //console.warn(`Missing data for EmployeeID: ${row.EmployeeID}`);
                 return row; // Return the original row if data is missing
             }
 
@@ -196,7 +196,7 @@ const BacklogComponent =() => {
                     return wd ? hrRate * parseFloat(wd.Days) * 8 : 0;
                 }
                 else{                    
-                    return parseFloat(rc.Monthly_Rate) || 0;
+                    return rc && rc.Monthly_Rate ? parseFloat(rc.Monthly_Rate) : 0;
                 }
 
                 

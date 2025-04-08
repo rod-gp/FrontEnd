@@ -22,6 +22,12 @@ const EmployeeListComponent = () => {
     item.Name.toLowerCase().includes(searchTerm.toLowerCase())
 );
 
+const formatDate = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    const date = new Date(`${year}-${month}-${month}`); // Create a valid Date object
+    return date.toLocaleString("en-US", { month: "short" }) + "/" + day + "/" + year;
+};
+
     return (
 
         <div className="container pt-2">
@@ -54,8 +60,8 @@ const EmployeeListComponent = () => {
             {filteredItems.map((employee) => (
             <tr key={employee.EmployeeID}>             
                 <td>{employee.Name}</td>
-                <td align="center">{new Date(employee.Start_Date).toLocaleDateString()}</td>
-                <td align="center">{new Date(employee.End_Date).toLocaleDateString()}</td>
+                <td align="center">{formatDate(new Date(employee.Start_Date).toISOString().split('T')[0])  }</td>
+                <td align="center">{formatDate(new Date(employee.End_Date).toISOString().split('T')[0])   }</td>
             {/**     <td>{employee.Status === 0 ? 'Active' : 'Inactive'}</td>*/}   
                 <td align='right'>{employee.SAPID}</td>
                 <td align='right'>{employee.City.City_Name}</td>

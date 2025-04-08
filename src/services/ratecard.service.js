@@ -4,8 +4,11 @@ class RatecardDataService{
 
     async create(data) {
         try {
-            console.log("Save create");
-            return await http.post("/ratecard", data);
+            
+            
+            const tmp = await http.post("/ratecard", data);
+            //console.log(tmp.data);
+            return tmp;
         } catch (error) {
             console.error("Error creating ratecard:", error);
             throw error;

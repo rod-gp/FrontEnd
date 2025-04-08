@@ -34,9 +34,34 @@ function App() {
           <ul className="nav flex-column">
             
           <li className="nav-item"><Link className="nav-link" to="/">Home</Link></li>
-            <li className="nav-item"><Link className="nav-link" to="/dash">Dashboard</Link></li>
 
-            <li className="nav-item">
+          <li className="nav-item">
+            <button  className="nav-link w-100 text-start" data-bs-toggle="collapse" 
+                data-bs-target="#submenu4"
+                onClick={() => toggleMenu(4)} >Dashboard ▾</button>         
+            
+            <div className={`collapse list-unstyled ${activeIndex === 4 ? "show" : ""}`} id="submenu4">
+            <ul className="nav flex-column ps-3">
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/dash">People</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/dash/attrition">Attrition</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/dash/revenue">Revenue</Link>
+                    </li>
+
+
+            </ul>
+
+
+            </div>
+
+     
+          </li>
+          
+          <li className="nav-item">
             <button  className="nav-link w-100 text-start" data-bs-toggle="collapse" 
                 data-bs-target="#submenu1"
                 onClick={() => toggleMenu(1)} >Employee ▾</button>         

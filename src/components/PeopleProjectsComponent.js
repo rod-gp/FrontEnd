@@ -54,18 +54,7 @@ const TableTransfer = () => {
       fetchData();
 
     }, []);
-/*
-  //get all projects 
-    useEffect(() => {
-        maritzProjectDataService.getAllProjects()
-        .then((response) => {
-          const onlyActiveProjects = response.data.filter(project => project.Active === 1);
-          setProjects(onlyActiveProjects);
-        })
-        .catch((error) => console.error('Error fetching list of Projects:', error));
-    }
-    , []);
- */
+
 
      //get all unassigned employees
     useEffect(() => {     
@@ -139,7 +128,9 @@ const TableTransfer = () => {
         try {
             const response = await EmployeeProjectDataService.getEmployeesAssignedToProject(activeProject);
             // Extract only EmployeeID and Name from the response
-            const basicEmployeeData = response.data.map(emp => ({
+            const basicEmployeeData = response.data
+            .filter(emp => emp.Employee.Status === 0) 
+            .map(emp => ({
               EmployeeID: emp.EmployeeID,
               Name: emp.Employee.Name,
               Start_Date: emp.Start_Date,

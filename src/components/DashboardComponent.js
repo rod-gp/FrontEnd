@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import * as d3 from "d3";
+import React, { useEffect, useState } from "react";
 import usFlag from "../images/american-flag.png";
 import colFlag from "../images/colombia-flag.webp";
 import inFlag from "../images/india-flag.png";
@@ -10,25 +9,42 @@ import bes from "../images/bes.jpeg";
 import mits from "../images/itsm.png";
 import dds from "../services/dashboard.service.js";
 
+import {
+    Chart as ChartJS,
+    LinearScale,
+    CategoryScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    Legend,
+    Tooltip,
+    LineController,
+    BarController,
+  } from 'chart.js';
+  import { Chart } from 'react-chartjs-2';
+
+
+
+
 
 
 const HomeDashboardComponent = () =>{
-    const chartRef = useRef(null); // Refs for 4 charts
     const [hcByCountry, setHcByCountry] = useState([]);
     const [hcByCompany, setHcByCompany] = useState([]);
     const [hclast12Months, setHclast12Months] = useState([]);
     const [hcByCity, setHcByCity]= useState([]);
     const [hcByStatus, setHcByStatus]= useState([]);
+    const [selecterQuarter, setSelecterQuarter] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [companyResponse, countryResponse,last12MonthsResponse, byCityResponse, byStatusResponse] = await Promise.all([
-                    dds.getHCbyCompany(),
-                    dds.getHCbyCountry(),
-                    dds.getHClast12Months(),
-                    dds.getHCbyCity(),
-                    dds.getHCbyStatus()
+                    dds.getHCbyCompany(selecterQuarter),
+                    dds.getHCbyCountry(selecterQuarter),
+                    dds.getHClast12Months(selecterQuarter),
+                    dds.getHCbyCity(selecterQuarter),
+                    dds.getHCbyStatus(selecterQuarter)          
                 ]);
     
                 setHcByCompany(companyResponse.data);
@@ -36,6 +52,7 @@ const HomeDashboardComponent = () =>{
                 setHclast12Months(last12MonthsResponse.data);
                 setHcByCity(byCityResponse.data);
                 setHcByStatus(byStatusResponse.data);
+               
 
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -43,7 +60,7 @@ const HomeDashboardComponent = () =>{
         };
     
         fetchData();
-    }, []);
+    }, [selecterQuarter]);
 
     const getTotalByCountry = (countryName) => {
         const countryData = hcByCountry.find(item => item.Country === countryName);
@@ -55,107 +72,126 @@ const HomeDashboardComponent = () =>{
         return companyData ? companyData.Total : null; // Returns null if the Company is not found
     };
 
-   
-
-    const drawChart = useCallback((chartContainer) => {
-        // Clear previous chart
-        d3.select(chartContainer).selectAll("*").remove();
-
-        // Set dimensions
-        const width = 900;
-        const height = 350;
-        const margin = { top: 10, right: 30, bottom: 30, left: 30 }; // Add space for Y-axis
-
-        // Create SVG
-        const svg = d3
-            .select(chartContainer)
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g") // Create a group to apply margins
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-
-
-        const x0 = d3.scaleBand()
-            .domain(hclast12Months.map(d => d.month))
-            .range([0, width])
-            .padding(0.2);
+       //Draw chartJS
     
-        const x1 = d3.scaleBand()
-            .domain(["arrivals", "departures"])
-            .range([0, x0.bandwidth()])
-            .padding(0.05);
-
-        const y = d3.scaleLinear()
-            .domain([0, d3.max(hclast12Months, d => Math.max(d.arrivals, d.departures))])
-            .nice()
-            .range([height, 0]);
-            
-        const yLine = d3.scaleLinear()
-            .domain([d3.min(hclast12Months, d => d.headcount) - 3, d3.max(hclast12Months, d => d.headcount) + 3])
-            .nice()
-            .range([height, 0]);
-
-        const color = d3.scaleOrdinal()
-            .domain(["arrivals", "departures"])
-            .range(["#004569", "#FF1918"]);
-
-        // Line generator
-        const line = d3.line()      
-            .x(d => x0(d.month) + x0.bandwidth() / 2) // Center the points in each month
-            .y(d => yLine(d.headcount));  
-
-        // Add grouped bars
-        svg.selectAll(".group")
-            .data(hclast12Months)
-            .enter()
-            .append("g")
-            .attr("transform", d => `translate(${x0(d.month)},0)`)
-            .selectAll("rect")
-            .data(d => ["arrivals", "departures"].map(key => ({ key, value: d[key] })))
-            .enter()
-            .append("rect")
-            .attr("x", d => x1(d.key))
-            .attr("y", d => y(d.value))
-            .attr("width", x1.bandwidth())
-            .attr("height", d => height - y(d.value))
-            .attr("fill", d=> color(d.key));
-
-
-        svg.append("g")
-            .attr("transform", `translate(0, ${height})`)
-            .call(d3.axisBottom(x0));
-        
-        svg.append("g")
-            .call(d3.axisLeft(y));
-
-        // Add Right Y-Axis (Headcount)
-        svg.append("g")
-            .attr("transform", `translate(${width},0)`)
-            .call(d3.axisRight(yLine));
-
-        // Draw yellow line
-        svg.append("path")
-            .datum(hclast12Months)
-            .attr("fill", "none")
-            .attr("stroke", "#FFCD00")
-            .attr("stroke-width", 4)
-            .attr("d", line);     
-
-        },[hclast12Months]);
-
- 
+       ChartJS.register(
+        LinearScale,
+        CategoryScale,
+        BarElement,
+        PointElement,
+        LineElement,
+        Legend,
+        Tooltip,
+        LineController,
+        BarController
+      );
     
-        useEffect(() => {
-            drawChart(chartRef.current);
-        }, [drawChart]);
+          const options = {
+            plugins: {
+                legend: {
+                    position: 'top' ,
+                },
+                title: {
+                    display: true,
+                    text: 'Joining and Leaving last 12 months',
+                },
+            },
+            responsive: true,
+    
+            interaction: {
+              mode: 'index' ,
+              intersect: false,
+            },
+            scales: {
+                y: {
+                  type: 'linear',
+                  display: true,
+                  position: 'left',
+                  grid: {
+                    drawOnChartArea: true,
+                  },
+                },
+                y1: {
+                  type: 'linear',
+                  display: true,
+                  position: 'right',
+                  grid: {
+                    drawOnChartArea: false,
+                  },
+                  min: 70,
+                  suggestedMin: 50
+                },
+              },
+          };
+      
+        const labels =  hclast12Months.map(d => d.month)
+    
+        const data = {
+            labels,
+            datasets: [
+              {
+                type: 'bar',
+                label: 'Arrivals',
+                data: hclast12Months.map(d => d.arrivals),
+                backgroundColor: '#004569',
+                stack: 'Stack 0',
+                order: 2
+              },
+              {
+                type: 'bar',
+                label: 'Departures',
+                data: hclast12Months.map(d => d.departures),
+                backgroundColor: '#FF1918',
+                stack: 'Stack 1',
+                order: 3
+              },
+              {
+                type: 'line',
+                label: 'Total HC',
+                data: hclast12Months.map(d => d.headcount),
+                borderColor: 'rgb(232, 202, 32)',
+                backgroundColor: 'rgb(232, 202, 32)',
+                borderWidth: 5,                
+                yAxisID: 'y1',
+                order: 1
+              },
+            ]};
+
 
     return(
+        
         <div className="container">           
-            <h2>Dashboards</h2>
-            <div className="row">
-                <div className="col-sm-3">
-                    <table align="left" className="table table-borderless small"  >
+       
+        <div className="row">
+            <div className="col-2 d-flex justify-content-right align-items-center">
+                <h2>Dashboards</h2>
+            </div>
+            <div className="col-10 d-flex justify-content-right align-items-center">
+                <select 
+                    value={selecterQuarter}
+                    onChange={(e) => {
+                        setSelecterQuarter(e.target.value);
+            
+                    }}
+                    className="form-select"
+                >
+                    <option>Choose a quarter</option>
+                    <option value="2024-03-02">2024-03</option>
+                    <option value="2024-06-02">2024-06</option>
+                    <option value="2024-09-02">2024-09</option>
+                    <option value="2024-12-02">2024-12</option>
+                    <option value="2025-03-02">2025-03</option>
+                    <option value="2025-06-02">2025-06</option>
+                    <option value="2025-09-02">2025-09</option>
+                    <option value="2025-12-02">2025-12</option>                    
+                </select>
+            </div>
+        </div>
+
+        <div className="row my-3">
+                <div className="col-6">
+                
+                    <table align="left" className="table table-borderless small" style={{width: '450px'}} >
                     <tbody>
                         <tr >
                             <td style={{ width: "10%" }} valign="middle" align="center"><img src={usFlag} alt="US Flag" width="80" height="48"/></td>
@@ -186,36 +222,32 @@ const HomeDashboardComponent = () =>{
                             <td valign="middle" align="center"><img src={mits} alt="IN Flag" width="60" height="48"/></td>
                             <td valign="middle" align="center"><h2>{getTotalByCompany("MITS")}</h2></td>
                         </tr>    
-                    </tbody>                
-                    </table>
-                </div>
-                <div className="col-sm-3"></div>
-                <div className="col-sm-3">
-                    <table className="table table-bordered table-sm">
-                        <thead className="table-dark">
-                        <tr>
-                            <th className="p-0">Status</th>
-                            <th className="p-0">Headcount</th>                                     
+                    
+                        <tr className="table-dark">
+                            <td colSpan='3' className="p-0">Status</td>
+                            <td colSpan='2' className="p-0" align='center'>Headcount</td>                                     
                         </tr>            
-                        </thead>
-                        <tbody>
+                        
+                        
                             {hcByStatus.map((status) => (
                             <tr key={status.status}>
-                                <td className="p-0" align='left'>{status.status}</td>
-                                <td className="p-0" align='middle'>{status.Total}</td>
+                                <td colSpan='3' className="p-0" align='left'><h6>{status.status}</h6></td>
+                                <td colSpan='2' className="p-0" align='middle'><h6>{status.Total}</h6></td>
                             </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>                
+                
+                </div>
+                
 
-                <div className="col-sm-3">
-                    <table className="table table-bordered table-sm">
-                    <thead className="table-dark">
+                <div className="col-6 d-flex justify-content-center align-items-center">
+                <table className="table table-striped text-center" style={{ width: "350px" }}>
+                    <thead className="table-dark rounded-top">
                     <tr>
-                        <th className="p-0">City</th>
+                        <th className="p-0" style={{borderTopLeftRadius: '5px'}}>City</th>
                         <th className="p-0">Headcount</th>
-                        <th className="p-0">Percentage</th>                
+                        <th className="p-0" style={{borderTopRightRadius: '5px'}}>Percentage</th>                
                     </tr>            
                     </thead>
                     <tbody>
@@ -230,19 +262,41 @@ const HomeDashboardComponent = () =>{
                     </table>
                 </div>
             </div>
-            <table className="table table-bordered text-center align-middle">
-                    <tbody>
-                    <tr>
-                        <td>
-                        <div ref={drawChart} className="chart-placeholder "></div>            
-                        </td>
-                    </tr>
-                    <tr className="table-dark">
-                        <td><strong>Headcount for the last 12 months</strong></td>
-                    </tr>
-                </tbody>
-                </table>         
+
+            <div className="row">
+           
+            <div className="col-4 d-flex p-5 justify-content-center align-items-center" >                
+  
+                    <table className="table table-striped text-center" >
+                        <thead className="table-dark rounded-top">
+                        <tr>
+                            <th className="p-0" style={{borderTopLeftRadius: '5px'}}>Month</th>
+                            <th className="p-0">Arrivals</th>                
+                            <th className="p-0">Departures</th>                
+                            <th className="p-0" style={{borderTopRightRadius: '5px'}}>Headcount</th>  
+                        </tr>            
+                        </thead>
+                        <tbody>
+                            {hclast12Months.map((company) => (
+                            <tr key={company.month}>
+                                <td className="p-0" align='left'>{company.month}</td>
+                                <td className="p-0" align='middle'>{company.arrivals}</td>
+                                <td className="p-0" align='middle'>{company.departures}</td>
+                                <td className="p-0" align='middle'>{company.headcount}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                
+                <div className="col-8 d-flex p-5 justify-content-center align-items-center" >                
+                        <Chart type='bar' options={options} data={data} />  
+                </div>
+
+            </div>
   </div>
+  
     );
 };
 
