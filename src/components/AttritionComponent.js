@@ -139,8 +139,8 @@ const AttritionComponent = () => {
       <div className="row pt-5"></div>
       </div>
         
-        <div className="d-flex p-3 justify-content-around border">
-            <div className="p-2 border align-middle flex-fill">
+        <div className="d-flex justify-content-around ">
+            <div className="d-flex border justify-content-center align-items-bottom flex-fill">
             <table className="table table-striped text-center" style={{ width: "350px" }}>
                         <thead className="table-dark rounded-top">
                         <tr>
@@ -185,7 +185,7 @@ const AttritionComponent = () => {
                         </tfoot>
                 </table>
             </div>
-            <div className="p-2 border align-middle flex-fill">
+            <div className="d-flex border justify-content-center flex-fill">
                 <Line options={options} data={data} />
             </div>
         </div>
