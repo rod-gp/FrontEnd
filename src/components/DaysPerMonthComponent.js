@@ -24,7 +24,7 @@ const DaysPerMonthComponent =() => {
                 else{
                     setIsNewYear(true);
                     setDaysPerMonth(Array(12).fill(null).map((_, index) => ({
-                        WDMID: index,  Date: new Date(year, index, 1), Days: 0
+                        WDMID: index,  Date: new Date(year, index, 2), Days: 0
                       })));
                 }
             })

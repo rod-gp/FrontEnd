@@ -95,6 +95,20 @@ class DashboardDataService{
             throw error;
         }
     }
+
+    async getRevenueForecast(tDate) {
+        try {
+            //console.log("tDate", tDate);
+            return await http.get("/dashboard/revenueforecast",{
+                params: {                     
+                     theDate: tDate
+             }
+         });
+        } catch (error) {
+            console.error("Error fetching attrition", error);
+            throw error;
+        }
+    }
 }
 
 const dds = new DashboardDataService();

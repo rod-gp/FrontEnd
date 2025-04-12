@@ -39,11 +39,12 @@ const BacklogComponent =() => {
             
             ]);
 
-                const onlyActiveProjects = marProjects.data.filter(project => project.Active === 1);
+                //const onlyActiveProjects = marProjects.data.filter(project => project.Active === 1);
 
 
-                setProjects(onlyActiveProjects);
+                setProjects(marProjects.data);
                 setWorkingDays(workdays.data);
+                setVisible(false);
             }
             catch(error){ 
                 console.error('Error fetching list of Projects:', error);
@@ -113,6 +114,7 @@ const BacklogComponent =() => {
             const transformedData =  backlog.reduce((acc, entry) => {
                 const { EmployeeID,  Employee, Monthly_Rate, Date: theDate } = entry;
                 const Name = Employee?.Name; 
+                const Status = Employee?.Status; 
     
                 const dateObj = new Date(theDate); // Parse the ISO string
                 const parsedDate = new Date(Date.UTC(
@@ -131,7 +133,7 @@ const BacklogComponent =() => {
             
                 // Initialize the EmployeeID entry if it doesn't exist
                 if (!acc[EmployeeID]) {
-                    acc[EmployeeID] = { EmployeeID, Name, Monthly_Rates: Array(12).fill(0) };
+                    acc[EmployeeID] = { EmployeeID, Name, Status, Monthly_Rates: Array(12).fill(0) };
                 }
             
                 // Update the Monthly_Rates array for the given month
@@ -146,14 +148,18 @@ const BacklogComponent =() => {
                 // If the employee doesn't have any data, add an entry with their name
                 transformedData[employee.EmployeeID] = {
                     EmployeeID: employee.EmployeeID,
+                    Status: employee.Employee?.Status,
                     Name: employee.Employee?.Name,
                     Monthly_Rates: Array(12).fill(0), // Assuming zero rates for months without data
                 };
             }
         });
 
-        setFormattedData(Object.values(transformedData));
-    
+        const sorted = Object.values(transformedData).sort((a, b) =>
+            a.Name.localeCompare(b.Name)
+          );
+         // console.log(sorted);
+        setFormattedData(sorted);
         
     }, [backlog],[formattedData]);
 
@@ -174,7 +180,7 @@ const BacklogComponent =() => {
 
       const calculate = () => {
 
-        const theDate = formattedData.map(row => {
+        const theData = formattedData.map(row => {
   
             const empData = peopleProject.find(employee => 
                 parseInt(employee.EmployeeID) === parseInt(row.EmployeeID)
@@ -209,7 +215,7 @@ const BacklogComponent =() => {
    
         });
 
-        setFormattedData(theDate);
+        setFormattedData(theData);
       }
 
       const handleSave = async () => {
@@ -304,7 +310,7 @@ const BacklogComponent =() => {
                 
                 </div>
                 <div className="col d-flex justify-content-end align-items-center">
-                    <button className="btn btn-primary m-1 " onClick={getBacklog} disabled={!(activeProjectId && year && colorOfMoney && recordType)}>Get Backlog</button>
+                    <button className="btn btn-primary m-1 " onClick={getBacklog} disabled={!(activeProjectId && year && colorOfMoney && recordType)}>Get {type}</button>
                     <button className="btn btn-primary m-1 " onClick={calculate} disabled={!(activeProjectId && year && colorOfMoney && recordType)}>Calculate</button>
                 </div>
         
@@ -313,7 +319,7 @@ const BacklogComponent =() => {
                     <label className='text-center'>  {theProject && <>Project Type: <b>{theProject.SOW_Name}</b></>}</label>
                     </div>
                     <div className='col '>
-                        <label className='text-center'> {theProject && theProject.SOW_Name !=="Staff Augmentation" && <> Original Monthly Rate: <b>{
+                        <label className='text-center'> {theProject && theProject.SOW_Name !=="Staff Augmentation" && <> Reference Monthly Rate: <b>{
                         
                         <NumericFormat 
                                 value={ theProject.Monthly_Rate}                         
@@ -370,9 +376,9 @@ const BacklogComponent =() => {
                             <td key={month} align='center' style={{ fontSize: "11px",textAlign: "center"  }} ><b>{formatMonth(month, year)}</b></td>
                         ))}
                 </tr>   
-                    {formattedData.map(({ EmployeeID, Name, Monthly_Rates }) => (
+                    {formattedData.map(({ EmployeeID, Name, Status, Monthly_Rates }) => (
                     <tr key={EmployeeID}>
-                        <td>{Name}</td>
+                      <td>  {Status === 1 ? <s>{Name}</s> : Name}</td>
                         {Monthly_Rates.map((rate, index) => (
                         <td key={index}>
                             <NumericFormat 

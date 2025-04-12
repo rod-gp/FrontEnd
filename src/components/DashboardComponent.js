@@ -160,13 +160,13 @@ const HomeDashboardComponent = () =>{
 
     return(
         
-        <div className="container">           
+        <div className="container pt-2">           
        
         <div className="row">
-            <div className="col-2 d-flex justify-content-right align-items-center">
-                <h2>Dashboards</h2>
+            <div className="col-3 d-flex justify-content-right align-items-center">
+                <h2>People Dashboard</h2>
             </div>
-            <div className="col-10 d-flex justify-content-right align-items-center">
+            <div className="col-2 d-flex justify-content-right align-items-center">
                 <select 
                     value={selecterQuarter}
                     onChange={(e) => {
