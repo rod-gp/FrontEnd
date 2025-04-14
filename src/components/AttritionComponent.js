@@ -140,7 +140,7 @@ const AttritionComponent = () => {
       </div>
         
         <div className="d-flex justify-content-around ">
-            <div className="d-flex border justify-content-center align-items-bottom flex-fill">
+            <div className="d-flex justify-content-center align-items-bottom flex-fill">
             <table className="table table-striped text-center" style={{ width: "350px" }}>
                         <thead className="table-dark rounded-top">
                         <tr>
