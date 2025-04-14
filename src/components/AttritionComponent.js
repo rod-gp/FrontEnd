@@ -82,7 +82,10 @@ const AttritionComponent = () => {
               type: 'linear',
               display: true,
               position: 'left',
-            }
+              ticks: {
+                stepSize: 1,
+              },
+            },
           },
       };
 
@@ -90,17 +93,17 @@ const AttritionComponent = () => {
         labels,
         datasets: [
           {
-            label: 'Attrition',
+            label: 'Unplanned departures',
             data: attritionData,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: '#6A6A6A',
+            backgroundColor: '#4A4A4A',
             yAxisID: 'y',
           },
           {
-            label: 'Employees that Left',
+            label: 'Total departures',
             data: attritionData2,
-            borderColor: 'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            borderColor: '#00A99D',
+            backgroundColor: '#00A99D',
             yAxisID: 'y',
           }           
         ],
@@ -190,7 +193,7 @@ const AttritionComponent = () => {
             </div>
         </div>
         <div className="row pt-5">
-            <div className="col-8 table-wrapper" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className="col-8 table-wrapper" style={{ maxHeight: '350px', overflowY: 'auto' }}>
             <table className="table table-striped text-center table-hover sticky-table" >
                     <thead className="table-dark rounded-top">
                         <tr>
