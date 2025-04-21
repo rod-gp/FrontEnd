@@ -27,7 +27,6 @@ function App() {
 
   return (
     <Router>
-  
       <div className="d-flex">
         <nav className="d-flex flex-column bg-light p-3 vh-100" style={{ minheight: '100vh', width: '220px' }}> 
           <h4>Menu</h4>
