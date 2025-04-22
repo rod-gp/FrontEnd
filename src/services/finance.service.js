@@ -60,6 +60,15 @@ class FinanceDataService{
         }
     }
 
+    async saveInvoice(data) {
+        try {
+            return await http.post("/finance/invoice/", data);
+        } catch (error) {
+            console.error(`Error creating Invoices`, error);
+            throw error;
+        }
+    }
+
 }
 
 const fds = new FinanceDataService();
