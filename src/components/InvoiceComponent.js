@@ -9,13 +9,16 @@ const InvoiceComponent =() => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [filteredProjectRoster, setFilteredProjectRoster] = useState([]);
     const [selectedYear, setYear] = useState(new Date().getFullYear());
-    const [selectedMonth, setMonth] = useState(new Date().getMonth()+1);
+    const [selectedMonth, setMonth] = useState('');
     const [projects, setProjects] = useState([]); 
     const [invoiceTotal, setInvoiceTotal] = useState(0);
     const [invoiceTotalTotal, setInvoiceTotalTotal] = useState(0);
     const [invoice, setInvoice] = useState([]);
     const [success, setSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [invoiceData, setInvoiceData] = useState([]);
+    const [workingDays, setWorkingDays] = useState(0);
+
    
     
     useEffect(()  => {
@@ -28,46 +31,138 @@ const InvoiceComponent =() => {
             catch(error){
                 console.error('Error fetching list of Projects:', error);
             } 
-        };
+        };   
         getProject();
+ 
     }, []);
 
 
+    useEffect(()  => {
+        setFilteredProjectRoster([]);
+        setInvoice([]);
+        setSelectedItem(null);
+        getInvoice();
+        getWorkingDays(selectedMonth);
+      //  getData(selectedItem);
 
-    const getData = async(item) =>{
+    },[selectedMonth]);
+
+    const getWorkingDays = async (theMonth) =>{
+
+        if (!theMonth) return;
+        const theDate = new Date(`${selectedYear}-${theMonth}-02`).toISOString().split('T')[0];
+     
+
+        const response = await FinanceDataService.getDaysPerMonth(selectedYear);
+        const workDays = response.data.find(entry => entry.Date.split('T')[0] === theDate);
+     
+        setWorkingDays(workDays.Days);
+    }
+
+
+    const getInvoice = async () =>{
         try{
+            const response = await FinanceDataService.getInvoices(selectedYear,selectedMonth);
+            if (!response) return; // safety check
+            setInvoiceData(response.data);
             
-            setSelectedItem(item);
+            const tempInvoice = []; 
+            
 
-            const response = await FinanceDataService.getBacklog(item.Maritz_ProjectID,selectedYear,'Backlog','Revenue');            
-            const allData = response.data;
-            const theDate = new Date(`${selectedYear}-${selectedMonth}-01`).toISOString().split('T')[0];
-                 
-            const filterData = allData
-            .filter((item) => {
-              const itemDate = new Date(item.Date).toISOString().split('T')[0];
-              return itemDate === theDate;
-            })
-            .map((item) => {
-              const deduction = parseFloat(0); // 
-              
-              return {
-                ...item,
-                Deduction: deduction,
-                Monthly_Total: item.Monthly_Rate - deduction,
-              };
+            response.data.forEach((projectInvoice) =>{
+                
+                const projData = projects.find(project => project.Maritz_ProjectID === projectInvoice.Maritz_ProjectID);
+                
+                if (!projData) return; // safety check
+
+                let invoiceTotal =0;
+                const tempRoster = [];
+                projectInvoice.Invoices.forEach((roster) => {
+                    
+                    const lineItem = {
+                        BacklogID: roster.InvoiceID,
+                        Employee: roster.Employee,
+                        Monthly_Rate: Number(roster.Monthly_Rate),
+                        Deduction: Number(roster.Reduction),
+                        Hourly_Rate: roster.Employee?.Employee_Projects?.[0]?.Role?.Ratecards?.[0]?.Hourly_Rate || 0,
+                        Monthly_Total: Number(roster.Final_Rate),
+                        Monthly_Hours: Number(roster.Monthly_Hours)
+                    };
+                    invoiceTotal += Number(roster.Final_Rate);
+                    tempRoster.push(lineItem);
+                });
+
+                const newInvoice = {                        
+                    Maritz_ProjectID: projectInvoice.Maritz_ProjectID,
+                    Softtek_ProjectID: projectInvoice.Softtek_ProjectID,
+                    Project_Name: projData.Project_Name,
+                    Manager_Name: projData.Manager.Name,
+                    ManagerID: projData.ManagerID,
+                    Project_WBS: projData.Softtek_Project.Project_WBS,
+                    Practice: projData.Softtek_Project.Practice,
+                    Roster: tempRoster,
+                    Total: invoiceTotal,            
+                };          
+                    
+                tempInvoice.push(newInvoice);
             });
 
-            setFilteredProjectRoster(filterData);
+            setInvoice(tempInvoice);
+            console.log(tempInvoice);
+        }
+        catch(error){
+            console.error('Error fetching Invoices from DB:', error);
+        } 
+    }
+
+    const getData = async(item) =>{
+      
+        try{
+            setFilteredProjectRoster([]);            
+            if(!item) return;            
+            setSelectedItem(item);
+            
+            //check if Item is on the Invoice             
+            const projData = invoice.find(project => project.Maritz_ProjectID === item.Maritz_ProjectID);
+           // console.log(projData.Roster);
+
+            if(projData){
+               setFilteredProjectRoster(projData.Roster);
+            }
+            else{
+
+                const response = await FinanceDataService.getBacklog(item.Maritz_ProjectID,selectedYear,'Backlog','Revenue');            
+                const allData = response.data;
+                const theDate = new Date(`${selectedYear}-${selectedMonth}-01`).toISOString().split('T')[0];
+                    
+                const filterData = allData
+                    .filter((item) => {
+                    const itemDate = new Date(item.Date).toISOString().split('T')[0];
+                    return itemDate === theDate;
+                    })
+                    .map((item) => {
+                    const deduction = parseFloat(0); // 
+                    
+                    return {
+                        ...item,
+                        Deduction: deduction,
+                        Monthly_Hours: 0,
+                        Hourly_Rate: item.Employee?.Employee_Projects?.[0]?.Role?.Ratecards?.[0]?.Hourly_Rate || 0,
+                        Monthly_Total: parseFloat(item.Monthly_Rate) - deduction,
+                    };
+                    });
+                    setFilteredProjectRoster(filterData);
+                    
+                 //   console.log(filterData);
+                }
+            
+
         }
         catch(error){
             console.error('Error filtering people on projects:', error);
         }
     };
 
-    useEffect(()  => {
-        getData(selectedItem);
-    },[selectedMonth]);
 
 
     const getMonthName = (monthNumber) => {
@@ -96,6 +191,7 @@ const InvoiceComponent =() => {
             Roster: filteredProjectRoster,
             Total: invoiceTotal,            
           };
+    //  console.log(newInvoice);
 
         const tempInvoice = [...invoice, newInvoice]; 
 
@@ -120,18 +216,20 @@ const doSave = async () => {
 
     const invoiceEntries = invoice.flatMap(project =>
         project.Roster.map(item => ({
+          Monthly_Hours: item.Monthly_Hours,            
+          Monthly_Rate: Number(item.Monthly_Rate),
+          Reduction: parseFloat((item.Deduction+"").replace(/[^0-9.-]+/g, "")),
+          Final_Rate: parseFloat((item.Monthly_Total+"").replace(/[^0-9.-]+/g, "")),
+          Date: new Date(selectedYear, selectedMonth - 1, 1).toISOString(),
           EmployeeID: item.EmployeeID,
-          Maritz_ProjectID: project.Maritz_ProjectID,
-          Color_of_Money: "Invoice",
-          Record_Type: "Revenue",
-          Monthly_Rate: item.Monthly_Total.toFixed(2), // or leave as number if backend handles it
-          Date: new Date(selectedYear, selectedMonth - 1, 1).toISOString() // JS months are 0-based
+          Maritz_ProjectID: project.Maritz_ProjectID
+
         }))
       );
     
    // console.log(invoiceEntries);
     try{
-        const fds = await FinanceDataService.saveInvoice(invoiceEntries);
+    const fds = await FinanceDataService.saveInvoice(invoiceEntries);
        setSuccess(true);
        setTimeout(() => setSuccess(false), 2000);
     }
@@ -207,7 +305,14 @@ const bottomTable = () => {
         return 0;
       });
 
- 
+    const dropChange = (item, newDeduction, monthlyRate) => {        
+        const monthlyTotal = monthlyRate - newDeduction;
+        setFilteredProjectRoster((prev) =>
+            prev.map((row) =>
+                row.BacklogID === item.BacklogID ? { ...row, Deduction: newDeduction, Monthly_Total: monthlyTotal  } : row
+            )
+        );
+    }
 
     const handleInputChange = (item, value) => {
         
@@ -230,6 +335,31 @@ const bottomTable = () => {
             })
         );
       };
+
+      const handleHrInputChange = (item, value) => {
+        
+        setFilteredProjectRoster((prevState) =>
+          prevState.map((entry) =>{
+            if(entry.BacklogID === item.BacklogID){
+       
+                const Monthly_Hours = parseFloat(value.replace(/[^0-9.-]+/g, ""))  || 0;
+                const Deduction = parseFloat( ((workingDays*8)-Monthly_Hours)*entry.Hourly_Rate);
+                const monthlyRate = parseFloat(entry.Monthly_Hours) || 0;
+                const monthlyTotal = Monthly_Hours * entry.Hourly_Rate ;
+       
+                return { 
+                    ...entry, 
+                    Deduction: Deduction,
+                    Monthly_Hours: Monthly_Hours,
+                    Monthly_Total: monthlyTotal 
+                    }; 
+            }
+            
+            return entry;
+            })
+        );
+      };
+
 
       const handleDeleteRow = (index) => {
         setInvoice((prevRows) => prevRows.filter((_, i) => i !== index));
@@ -354,10 +484,22 @@ const bottomTable = () => {
 
                             <table className='table table-responsive small' style={{width:'700px'}}>
                                 <thead>
-                                <tr className="table-dark">
-                                    <th className="p-1" style={{width:'40%', borderTopLeftRadius: '5px'}}>Employee</th>
+                                <tr className="table-dark ">
+                                    <th className="p-1" style={{width:'45%', borderTopLeftRadius: '5px'}}>Employee</th>
+                                  
+                                  {
+                                  selectedItem.SOW_Name ==="Staff Augmentation" ? (
+                                    <>
+                                    <th className="p-1 text-end" style={{width:'15%'}} >Hourly Rate</th>
+                                    <th className="p-1 text-center" style={{width:'10%'}}>Max Hours </th>
+                                    <th className="p-1 text-center" style={{width:'15%'}}>Worked Hours </th>
+                                    </>
+                                   ) : (
+                                    <>
                                     <th className="p-1 text-end" style={{width:'15%'}} >Monthly Rate</th>
-                                    <th className="p-1 text-end" style={{width:'15%'}}>Deductions</th>
+                                    <th className="p-1 text-center" style={{width:'25%'}}>Deductions</th>
+                                    </>   
+                                    )}
                                     <th className="p-1 text-end" style={{width:'15%', borderTopRightRadius: '5px'}}>Monthly total</th>
                                     </tr>
                                 </thead>
@@ -369,7 +511,29 @@ const bottomTable = () => {
                                     
                                  <tr key={item.BacklogID}> 
                                         <td>{item.Employee.Name}</td>
-                                        <td className='text-end'> <NumericFormat 
+                                {
+                                  selectedItem.SOW_Name ==="Staff Augmentation" ? (
+                                    <> 
+                                      <td className='text-center'>$ {item.Hourly_Rate}</td>
+                                    
+                                      <td className='text-center'>{workingDays*8}</td>
+
+                                      <td> <NumericFormat                                    
+                                            className="ms-2"
+                                            value={item.Monthly_Hours}
+                                                onBlur={(e) => handleHrInputChange(item, e.target.value || 0 )}
+                                                style={{ fontSize: "12px", textAlign: "right",width: "80px" }}                                   
+                                                thousandSeparator={true}
+                                                decimalScale={0}
+                                                fixedDecimalScale={true}
+                                                prefix=""
+                                        /> </td>
+                                    
+                                    
+                                    </>
+                                    ) : (                                    
+                                    <>                                     
+                                        <td className='text-center'> <NumericFormat 
                                                 style={{ fontSize: "12px", textAlign: "right" }}
                                                 value={item.Monthly_Rate}
                                                 displayType="text"
@@ -379,7 +543,30 @@ const bottomTable = () => {
                                                 prefix="$"
                                         /></td>
                                         <td align="right">
+                                          <div className="d-inline-flex justify-content-between">
+                                            <select className="form-select"
+
+                                                onChange={(e) => {
+                                                    const selectedFactor = parseFloat(e.target.value);
+                                                    const deduction = item.Monthly_Rate * selectedFactor;
+                                                    dropChange(item, deduction, item.Monthly_Rate);
+                                                }}
+                                                value={(item.Deduction/item.Monthly_Rate).toFixed(2)}
+                                                style={{
+                                                    fontSize: "11px",
+                                                    textAlign: "left",
+                                                    width: "65px",
+                                                    padding: "2px 6px", // reduce vertical and horizontal padding
+                                                    height: "30px"       // optional: limit overall height
+                                                }}>
+                                                <option value={0}>0%</option>
+                                                <option value={0.25}>25%</option>
+                                                <option value={0.5}>50%</option>
+                                                <option value={0.75}>75%</option>
+                                                <option value={1}>100%</option>
+                                            </select>
                                         <NumericFormat                                    
+                                                className="ms-2"
                                                 value={item.Deduction}
                                                 onBlur={(e) => handleInputChange(item, e.target.value || 0 )}
                                                 style={{ fontSize: "12px", textAlign: "right",width: "80px" }}                                   
@@ -388,9 +575,12 @@ const bottomTable = () => {
                                                 fixedDecimalScale={true}
                                                 prefix="$"
                                         />              
-
-
+                                        </div>
                                         </td>
+
+                                        </>
+                                    )}
+
                                         <td className='text-end'> <NumericFormat 
                                                 style={{ fontSize: "12px", textAlign: "right" }}
                                                 value={item.Monthly_Total}
@@ -408,7 +598,7 @@ const bottomTable = () => {
                                 <tfoot  className="table-dark rounded-bottom">
                                     <tr key='14'>
                                     <td className="p-1 text-end fw-bold" style={{borderBottomLeftRadius: '5px'}}>Total</td>                        
-                                    <td colSpan='3' className="p-1 text-end fw-bold" style={{ borderBottomRightRadius: '5px' }}>
+                                    <td colSpan={selectedItem.SOW_Name ==='Staff Augmentation' ?4:3} className="p-1 text-end fw-bold" style={{ borderBottomRightRadius: '5px' }}>
                                             <NumericFormat 
                                             value={invoiceTotal}
                                                     displayType="text"
@@ -437,7 +627,7 @@ const bottomTable = () => {
 
                         { invoice &&  invoice.length > 0 && (
                             <>
-                            <div class="d-flex justify-content-between p-1 gap-3" style={{width:'400px'}}>
+                            <div className="d-flex justify-content-between p-1 gap-3" style={{width:'400px'}}>
                             <h3>{getMonthName(selectedMonth)} Invoice</h3>
                             <button 
                                 type="button"
@@ -492,7 +682,7 @@ const bottomTable = () => {
                                         <tr key='14'>
                                         <td  className="p-1 text-end fw-bold" style={{borderBottomLeftRadius: '5px'}}>Total</td>                        
                                         
-                                        <td colspan="2" className="p-1 text-middle fw-bold" style={{ borderBottomRightRadius: '5px' }}>
+                                        <td colSpan="2" className="p-1 text-middle fw-bold" style={{ borderBottomRightRadius: '5px' }}>
                                                 <NumericFormat 
                                                 value={invoiceTotalTotal}
                                                         displayType="text"
@@ -513,6 +703,10 @@ const bottomTable = () => {
 
                         </div>
                         </div>
+
+{/**
+ * This is the bottom table
+ */}
 
                 { invoice && projectName && projectName.length > 0 && invoice.length > 0 &&  (
                     <>

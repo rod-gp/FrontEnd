@@ -116,9 +116,7 @@ function App() {
                     <li className="nav-item">
                         <Link className="nav-link" to="/finance/Actual">Actual</Link>
                     </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to="/finance/Plan">Plan</Link>
-                    </li>
+                    
                     <li className="nav-item">
                         <Link className="nav-link" to="/ratecard">Rate Card</Link>
                     </li>

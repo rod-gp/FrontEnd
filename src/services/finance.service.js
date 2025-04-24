@@ -69,6 +69,20 @@ class FinanceDataService{
         }
     }
 
+    async getInvoices(year,month) {
+        try {
+            return await http.get("/finance/invoice/", {
+               params: {
+                    Year: year,
+                    Month: month
+            }
+            });
+        } catch (error) {
+            console.error("Error fetching invoices for Month:"+month+" and Year:"+year, error);
+            throw error;
+        }
+    }   
+
 }
 
 const fds = new FinanceDataService();
