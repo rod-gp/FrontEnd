@@ -47,6 +47,7 @@ const formatDate = (dateString) => {
             <table className="table table-striped table-borderless table-sm" style={{ width: '1200px' }} >
             <thead className="table-dark">
                <tr>                     
+               <th style={{ width: '35px' }}>IS</th>
                 <th style={{ width: '350px' }}>Name</th>
                 <th style={{ textAlign: 'center' }}>Start Date</th>
                 <th style={{ textAlign: 'center' }}>End Date</th>
@@ -59,6 +60,7 @@ const formatDate = (dateString) => {
             <tbody>
             {filteredItems.map((employee) => (
             <tr key={employee.EmployeeID}>             
+                <td>{employee.IS}</td>
                 <td>{employee.Name}</td>
                 <td align="center">{formatDate(employee.Start_Date.split('T')[0])  }</td>
                 <td align="center">{formatDate(employee.End_Date.split('T')[0])}</td>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CityDataService from "../services/city.service";
+import Constants from "../constants/Constants";
 
 const CityListComponent = () => {
-  
+   
   const [cities, setCities] = useState([]);
 
   useEffect((ss) => {
@@ -15,12 +16,13 @@ const CityListComponent = () => {
   return (
  
     <div className="container mt-4">
-        <table className="table table-striped table-sm" style={{ width: '500px' }}>
+        <table className="table table-striped table-sm" style={{ width: '700px' }}>
         <thead className="table-dark">
         <tr>
           <th>ID</th>
           <th>City Name</th>
           <th>Country</th>
+          <th>Company Code</th>
           <th align ='center'>Action</th>
         </tr>
         </thead>
@@ -30,6 +32,7 @@ const CityListComponent = () => {
                 <td valign='middle'>{city.CityId}</td>
                 <td valign='middle'>{city.City_Name}</td>
                 <td valign='middle'>{city.Country}</td>
+                <td valign='middle'>{ Constants.COMPANIES.find(c => c.CompanyID === city.CompanyID)?.Name || "Unknown"}</td>
                 <td valign='middle' ><Link to={`/city/${city.CityId}`} 
                 className="btn btn-primary"
                 style={{ '--bs-btn-padding-y': '.01rem', '--bs-btn-padding-x': '.5rem', '--bs-btn-font-size': '.75rem' }} >

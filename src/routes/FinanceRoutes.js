@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Invoice from "../components/InvoiceComponent.js";
 import RateCard from "../components/RateCardComponent.js";
 import Backlog from "../components/BacklogComponent.js";
+import Taxonomy from "../components/TaxonomyComponent.js";
 import DaysPerMonthComponent from "../components/DaysPerMonthComponent.js";
 
 const FinanceRoutes = () => {
@@ -12,6 +13,7 @@ const FinanceRoutes = () => {
             <Route path="/:type/" element={<Backlog />} />
 
             <Route path="/ratecard/" element={<RateCard />} /> 
+            <Route path="/taxonomy/" element={<Taxonomy />} /> 
             <Route path="/dayspermonth/" element={<DaysPerMonthComponent />} />
 
         </Routes>

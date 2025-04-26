@@ -1,9 +1,11 @@
 import http from "../http-common";
 
 class RoleDataService{
-    async getRoles() {
+    async getRoles(type) {
         try {
-            return await http.get("/role");
+            return await http.get("/role", {
+                params: { Role_Type: type }
+             });
         } catch (error) {
             console.error("Error fetching roles:", error);
             throw error;

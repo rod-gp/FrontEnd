@@ -8,7 +8,7 @@ import { FaTrash } from "react-icons/fa"; // Import the trash icon
 
 
 
-const RateCardComponent =() => {
+const TaxonomyComponent =() => {
 
     const [roles, setRoles] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -26,8 +26,8 @@ const RateCardComponent =() => {
             try {
                 const [countryList, rolesList, rowsList] = await Promise.all([
                     CityDataService.getCountries(),
-                    RoleDataService.getRoles("R"),
-                    RatecardDataService.findRatecards("R")
+                    RoleDataService.getRoles("T"),
+                    RatecardDataService.findRatecards("T")
                 ]); 
                 setCountries(countryList.data);
                 setRoles(rolesList.data);
@@ -384,4 +384,4 @@ const RateCardComponent =() => {
 
     );
 };
-export default RateCardComponent;
+export default TaxonomyComponent;

@@ -4,10 +4,7 @@ class RatecardDataService{
 
     async create(data) {
         try {
-            
-            
             const tmp = await http.post("/ratecard", data);
-            //console.log(tmp.data);
             return tmp;
         } catch (error) {
             console.error("Error creating ratecard:", error);
@@ -16,14 +13,19 @@ class RatecardDataService{
     }
 
 
-    async find(data) {
+    async findRatecards(type) {
+
+        console.log("insideService="+type);
         try {
-            return await http.get("/ratecard", data);
+            return await http.get("/ratecard", {
+                params: { Role_Type: type }
+             });
         } catch (error) {
             console.error("Error creating ratecard:", error);
             throw error;
         }
     }
+
 
     async update(data) {
         try {

@@ -81,6 +81,7 @@ const InvoiceComponent =() => {
                     
                     const lineItem = {
                         BacklogID: roster.InvoiceID,
+                        EmployeeID: roster.EmployeeID,
                         Employee: roster.Employee,
                         Monthly_Rate: Number(roster.Monthly_Rate),
                         Deduction: Number(roster.Reduction),
@@ -404,7 +405,7 @@ const bottomTable = () => {
                             setMonth(e.target.value);                
                         }}
                     >
-                        <option disabled>Select a month</option>
+                        <option value="">Select a month</option>
                         <option value="1">January</option>
                         <option value="2">February</option>
                         <option value="3">March</option>

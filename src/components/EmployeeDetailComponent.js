@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import EmployeeDataService from "../services/employee.service";
 import cityDataService from "../services/city.service";
 
+
+
 const EmployeeDetailComponent = () => {
   const navigate = useNavigate(); // To redirect after successful update
   const { id } = useParams(); // Get EmployeeID from URL
@@ -16,10 +18,12 @@ const EmployeeDetailComponent = () => {
     Attrition: 0,
     CityId: '',
     SAPID: '',
+    IS:'',
     City: {
       CityId: 0,
       City_Name: '',
-      Country: ''
+      Country: '',
+      CompanyID: ''
     }
 
   });
@@ -179,6 +183,24 @@ useEffect(() => {
             )}
             </td>
           </tr>
+
+          <tr>
+            <th>IS</th>
+            <td>
+              <input
+                type="text"
+                name="IS"
+                value={formData.IS}
+                onChange={handleChange}
+                className={`form-control ${validationErrors.IS ? 'is-invalid' : ''}`}
+                required
+              />
+              {validationErrors.IS && (
+              <div className="invalid-feedback">{validationErrors.IS}</div>
+            )}
+            </td>
+          </tr>
+
           <tr>
             <th>Start Date</th>
             <td>

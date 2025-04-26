@@ -31,6 +31,7 @@ const RevenueComponent = () => {
         const [actualTotal, setActualTotal] = useState(0);
         const [backlogTotal, setBacklogTotal] = useState(0);
         const [planTotal, setPlanTotal] = useState(0);
+        const [currentMonth, setCurrentMonth] = useState(new Date().getMonth()+1);
         
         const [labels, setLabels] = useState([]);
 
@@ -66,12 +67,12 @@ const RevenueComponent = () => {
                               .reduce((sum, [, value]) => sum + value, 0);
                         
                             switch (entry.projectID) {
-                              case 'Actual':
-                                setActualTotal(total);
-                                break;
                               case 'Backlog':
                                 setBacklogTotal(total);
                                 break;
+                              case 'Actual':
+                                setActualTotal(total);
+                                  break;  
                               case 'Plan':
                                 setPlanTotal(total);
                                 break;
@@ -169,7 +170,7 @@ const RevenueComponent = () => {
               <h5 className="card-title">Goal YTD</h5>
               <p className="card-text">
                 <NumericFormat 
-                    value={(planTotal/12*3)}    
+                    value={(planTotal/12*currentMonth)}    
                     displayType="text"               
                     thousandSeparator={true}
                     prefix="$"
@@ -203,7 +204,7 @@ const RevenueComponent = () => {
               <h5 className="card-title">Goal GAP</h5>
               <p className="card-text">
               <NumericFormat 
-                    value={(planTotal/12*3)-actualTotal}    
+                    value={(planTotal/12*currentMonth)-actualTotal}    
                     displayType="text"               
                     thousandSeparator={true}
                     prefix="$"
@@ -222,7 +223,7 @@ const RevenueComponent = () => {
               <h5 className="card-title">Revenue Vs Goal</h5>
               <p className="card-text">
               <NumericFormat 
-                    value={(actualTotal / (planTotal/12*3))*100}    
+                    value={(actualTotal / (planTotal/12*currentMonth))*100}    
                     displayType="text"               
                     thousandSeparator={true}
                     suffix="%"

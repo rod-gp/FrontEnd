@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CityDataService from "../services/city.service";
-
+import Constants from "../constants/Constants";
 
 
 const  CityDetailComponent= () => {
@@ -11,7 +11,8 @@ const  CityDetailComponent= () => {
   const [city, setCity] = useState({
     City_Name: '',
     CityId: '',
-    Country: ''
+    Country: '',
+    CompanyID: ''
   });
   
   const [countries, setCountries] = useState([]);
@@ -115,11 +116,11 @@ const  CityDetailComponent= () => {
         
       <form onSubmit={handleSubmit}  className="update-form">
   
-      <div className="table-responsive">
-      <table className="table table-striped table-hover table-bordered">
+
+      <table className="table table-bordered" style={{ width: '500px' }}>
 
       <tbody>
-        {/* City ID (Readonly) */}
+ 
         <tr>
           <td><strong>City ID:</strong></td>
           <td>
@@ -127,9 +128,7 @@ const  CityDetailComponent= () => {
             <input type="hidden" name="CityID" value={city.CityID} />
           </td>
         </tr>
-
-  {/* City Name Input */}
-  <tr>
+        <tr>
           <td><strong>Name:</strong></td>
           <td>
             <input
@@ -143,10 +142,7 @@ const  CityDetailComponent= () => {
             {validationErrors.City_Name && <div className="invalid-feedback">{validationErrors.City_Name}</div>}
           </td>
         </tr>
-
-
-      {/* Country Dropdown */}
-      <tr>
+        <tr>
           <td><strong>Country:</strong></td>
           <td>
             <select
@@ -167,6 +163,27 @@ const  CityDetailComponent= () => {
         </tr>
 
         <tr>
+          <td><strong>Company:</strong></td>
+          <td>
+            <select
+              name="Country"
+              value={city.CompanyID}
+              onChange={handleChange}
+              className={`form-control ${validationErrors.CompanyID ? 'is-invalid' : ''}`}
+            >
+              <option value="">-- Select a Company --</option>
+              {Constants.COMPANIES.map((company) => (
+                <option key={company.CompanyID} value={company.CompanyID}>
+                  {company.Name}
+                </option>
+              ))}
+            </select>
+            {validationErrors.Country && <div className="invalid-feedback">{validationErrors.CompanyID}</div>}
+          </td>
+        </tr>
+
+
+        <tr>
           <td colSpan="2" className="text-center">
             <button type="submit" disabled={submitting} className="btn btn-primary me-2">
               {submitting ? 'Updating...' : 'Update City'}
@@ -178,7 +195,7 @@ const  CityDetailComponent= () => {
         </tr>
       </tbody>
     </table>
-    </div>
+  
       </form>
     </div>
   );

@@ -5,8 +5,8 @@ import RolesDetailComponent from "../components/RolesDetailComponent";
 const RolesRoutes = () => {
     return (
       <Routes>
-        <Route path="/" element={<RolesListComponent />} /> 
-        <Route path="/:id" element={<RolesDetailComponent />} />
+        <Route path="/:type" element={<RolesListComponent />} /> 
+        <Route path="/role/:id/:type" element={<RolesDetailComponent />} />
       </Routes>
     );
   };

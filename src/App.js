@@ -73,8 +73,13 @@ function App() {
                       <Link className="nav-link" to="/employee/List/1">Inactive</Link>
                     </li>
                     <li className="nav-item">
-                      <Link className="nav-link" to="/role">Roles</Link>
+                      <Link className="nav-link" to="/role/R">Roles</Link>
                     </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/role/T">Activity Type</Link>
+                    </li>
+
+
                   </ul>
               </div>
             </li>
@@ -113,10 +118,6 @@ function App() {
                     <li className="nav-item">
                         <Link className="nav-link" to="/finance/Backlog">Backlog</Link>
                     </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to="/finance/Actual">Actual</Link>
-                    </li>
-                    
                     <li className="nav-item">
                         <Link className="nav-link" to="/ratecard">Rate Card</Link>
                     </li>

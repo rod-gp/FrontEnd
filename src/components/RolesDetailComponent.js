@@ -1,22 +1,28 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import RoleDataService from "../services/role.service";
+import Constants from "../constants/Constants";
 
 const RolesDetailComponent = () => {
     
     const { id } = useParams(); 
+    const { type } = useParams(); 
     const navigate = useNavigate(); // To redirect after successful update
-    const [success, setSuccess] = useState(false);
+    
+    const [success, setSuccess] = useState(false);   
     const [errorMessage, setErrorMessage] = useState('');
     const [validationErrors, setValidationErrors] = useState({});
     
-    const seniorityLevels = ["Trainee", "Junior", "Proficient", "Senior", "Staff"];
-    const practice = ["AMS","Analytics","Digital","ERP","ITIS","QA"];
+    const seniorityLevels = Constants.SENIORITYLEVELS;
+    const practice = Constants.PRACTICE;
+
+   
     const [formData, setFormData] = useState({
       RoleID: 0,
       Role_Name: '',
       Seniority: '',
-      Practice: ''
+      Practice: '',
+      Role_Type: type
   });
 
   useEffect(() => {
@@ -54,13 +60,13 @@ const RolesDetailComponent = () => {
       if (id === '0') {
           await RoleDataService.create(formData);
           setSuccess(true);
-          setTimeout(() => navigate(`/role`), 2000); // Redirect after 2 seconds
+          setTimeout(() => navigate(`/role/${type}`), 2000); // Redirect after 2 seconds
           return;
       }
 
       await RoleDataService.update(id,formData);
       setSuccess(true);
-      setTimeout(() => navigate(`/role`), 2000); // Redirect after 2 seconds
+      setTimeout(() => navigate(`/role/${type}`), 2000); // Redirect after 2 seconds
   }   catch (error) {
       console.error('Error updating Role:', error);
       setErrorMessage('Failed to update Role.');
@@ -71,9 +77,7 @@ const RolesDetailComponent = () => {
 
   const validateForm = () => {
     const errors = {};
-   // if (!formData.Role_Name.trim()) errors.Role_Name = 'Name is required.';  
-   // if (!formData.Seniority.trim()) errors.Seniority = 'Seniority is required.';  
-   // if (!formData.practice.trim()) errors.Practice = 'Practice is required.';  
+
 
     return errors;
   }
@@ -92,17 +96,23 @@ const RolesDetailComponent = () => {
     return(
             
         <div className="container mt-4" >
-        <h2>Role Details</h2>
+        <h2>{type==="R"?"Role":"Activity Type"} Details</h2>
         
-        {success && <div className="alert alert-success">Role {id==='0'?'Created':'updated'}  successfully! Redirecting...</div>}
+        {success && <div className="alert alert-success">{type==="R"?"Role":"Activity Type"} {id==='0'?'Created':'updated'}  successfully! Redirecting...</div>}
         {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
         <form onSubmit={handleSubmit} className="manager-form">
-        <table className="table table-bordered" style={{ width: '500px' }}>
+        <table className="table" style={{ width: '500px' }}>
         <tbody>
           <tr>
-            <th>Role ID</th>
+            <th>{type==="R"?"Role":"Activity Type"} ID</th>
             <td>{id==='0'?'':formData.RoleID}
+            <input
+              type="hidden"
+              name="Role_Type"
+              value={formData.Role_Type}
+              className="form-control"
+            />
             <input
               type="hidden"
               name="RoleID"
@@ -168,21 +178,25 @@ const RolesDetailComponent = () => {
                 </select>
             </td>
         </tr>
-        </tbody>
-        </table>
+  
+        <tr><td colSpan={2}>
+            <div className="d-flex justify-content-around">
+              <button type="submit" className="btn btn-primary" >
+                {id==='0'?'Create':'Update'} {type==="R"?"Role":"Activity Type"}
+              </button>
 
-        <div className="d-flex justify-content-between">
-            <button type="submit" className="btn btn-primary" >
-              {id==='0'?'Create Role':'Update Role'}
-            </button>
+              <button type="button" className="btn btn-secondary" 
+              
+              onClick={() => navigate(`/role/${type}`)}
+              >
+                Cancel
+              </button>
+            </div>
+            </td></tr> 
+         
+         </tbody>
+         </table>
 
-            <button type="button" className="btn btn-secondary" 
-            
-            onClick={() => navigate(`/role`)}
-            >
-              Cancel
-            </button>
-          </div>
           </form>
         </div>
 
