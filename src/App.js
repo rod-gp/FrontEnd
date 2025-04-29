@@ -99,7 +99,7 @@ function App() {
                       <Link className="nav-link" to="/SofttekProjects">Assign</Link>
                     </li>
                     <li className="nav-item">  
-                      <Link className="nav-link" to="/SofttekProjects">Fixeded Cost</Link>
+                      <Link className="nav-link" to="/project/mpc">Fixeded Cost</Link>
                     </li>
 
                 </ul>

@@ -37,8 +37,8 @@ const TableTransfer = () => {
       const fetchData = async () => { 
         try {
           const [rolesList, rateCardList, projectList] = await Promise.all([
-                roleDataService.getRoles(), 
-                rateCardDataService.find(),
+                roleDataService.getRoles('R'), 
+                rateCardDataService.findRatecards('R'),
                 maritzProjectDataService.getAllProjects()             
               ]);
                 setRoles(rolesList.data);

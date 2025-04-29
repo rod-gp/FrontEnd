@@ -14,6 +14,17 @@ const Constants = {
                 {PracticeID:90704 , Name: "IM"}
         ],
 
+    COST_OPTIONS:[
+        {CID: 1, Cost_Name:"Airfare"},
+        {CID: 2, Cost_Name:"Bonus"},
+        {CID: 3, Cost_Name:"Car"},
+        {CID: 4, Cost_Name:"Hotel"},
+        {CID: 5, Cost_Name:"Mobile"},
+        {CID: 6, Cost_Name:"Perdiem"},
+        {CID: 7, Cost_Name:"Training"},
+    ],
+    
+
     SOW_TYPE : ["Managed Services","Managed Capacity","Staff Augmentation"],
     RECORD_TYPE: ["Revenue","Cost"],
     COLOR_OF_MONEY: ["Backlog","Plan","Actual","Forecast","Prospect"],
