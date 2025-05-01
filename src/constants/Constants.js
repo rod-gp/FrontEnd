@@ -37,6 +37,13 @@ const Constants = {
         {CompanyID: 1030, Name: "COL - Softtek  Renovation Ltda.", Country: "Colombia" },	
         {CompanyID: 1019, Name: "USA - Softtek Integration Systems", Country: "USA" },
     ],
+
+    INFRASTRUCTURE :[
+        {Country: "Mexico", Cost:  140 },
+        {Country: "India", Cost:  140 },
+        {Country: "Colombia", Cost:  140 },
+        {Country: "USA", Cost: 140},
+    ],
 }
 
 export default Constants;

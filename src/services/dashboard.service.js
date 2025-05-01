@@ -97,8 +97,7 @@ class DashboardDataService{
     }
 
     async getRevenueForecast(tDate) {
-        try {
-            //console.log("tDate", tDate);
+        try {           
             return await http.get("/dashboard/revenueforecast",{
                 params: {                     
                      theDate: tDate
@@ -106,6 +105,19 @@ class DashboardDataService{
          });
         } catch (error) {
             console.error("Error fetching attrition", error);
+            throw error;
+        }
+    }
+
+    async getPLbyMonth(theDate){
+        try {           
+            return await http.get("/dashboard/plbymonth",{
+                params: {                     
+                     theDate: theDate
+             }
+         });
+        } catch (error) {
+            console.error("Error fetch P&L", error);
             throw error;
         }
     }

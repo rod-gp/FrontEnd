@@ -10,8 +10,7 @@ const MaritzProjectCostComponent= () =>{
     const [activeProjectId, setActiveProjectId] = useState('');
     const [projects, setProjects] = useState([]);
     const [projectsCost, setProjectsCost] = useState([]);
-    const [editedData, setEditedData] = useState([]);
-
+   
     //get all projects 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,11 +33,13 @@ const MaritzProjectCostComponent= () =>{
         const fetchData = async () => {
             if(!activeProjectId) return;
 
-            console.log(activeProjectId);
+            //console.log(activeProjectId);
             try {
                 const [marProjCost] = await Promise.all([            
                     mpcds.getCostByProjectId(activeProjectId),        
                 ]);
+
+                
 
                 setProjectsCost(marProjCost.data);           
             
@@ -51,7 +52,6 @@ const MaritzProjectCostComponent= () =>{
     }, [activeProjectId]);
 
     const newCost=()=>{
-       
         setProjectsCost(prev => [...prev,  
             {
             Cost_Name: "",
@@ -59,7 +59,6 @@ const MaritzProjectCostComponent= () =>{
             // You can add any other default fields needed here
             }
         ]);
-        console.log(projectsCost.length)
     }
 
     const handleDateChange = (e) =>{
@@ -118,9 +117,22 @@ const MaritzProjectCostComponent= () =>{
       }, Array(12).fill(0)); // initialize 12 zeros
     
 
-      const doSave=()=>{
-        
+      const doSave= async ()=>{
+       
+        try{
+            
+            console.log("Year="+year);
+            console.log("PID="+activeProjectId);
+            console.log(projectsCost);
 
+            mpcds.create(year, activeProjectId, projectsCost);
+        
+        
+        }
+
+        catch(e){
+
+        }
       }
 
     return(

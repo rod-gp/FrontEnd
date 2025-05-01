@@ -34,9 +34,14 @@ class MaritzProjectCostService {
     }
 
     // Create a new project
-    async create(projectData) {
+    async create(year, projectID, projectData) {
         try {
-            return await http.post(API_URL, projectData);
+            return await http.post(API_URL, {
+                Maritz_ProjectID: projectID,
+                Year: year,
+                projectData
+                }
+            );
         } catch (error) {
             console.error("Error creating project:", error);
             throw error;

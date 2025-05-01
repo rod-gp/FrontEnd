@@ -48,8 +48,8 @@ const DaysPerMonthComponent =() => {
 
         const handleSubmit = async (e) => {            
             
-                console.log('year:', year);
-                console.log('daysPerMonth:', daysPerMonth);
+              //  console.log('year:', year);
+               // console.log('daysPerMonth:', daysPerMonth);
                 e.preventDefault();
                 
                 // Save or Update
