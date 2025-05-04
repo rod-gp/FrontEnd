@@ -105,6 +105,9 @@ function App() {
                     <li className="nav-item">  
                       <Link className="nav-link" to="/project/mpc">Fixeded Cost</Link>
                     </li>
+                    <li className="nav-item">  
+                      <Link className="nav-link" to="/project/dmalloc">DM Allocation</Link>
+                    </li>
 
                 </ul>
                 </div>

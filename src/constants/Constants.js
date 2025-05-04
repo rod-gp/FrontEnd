@@ -44,6 +44,12 @@ const Constants = {
         {Country: "Colombia", Cost:  140 },
         {Country: "USA", Cost: 140},
     ],
+
+    DMS : [
+        {DMID: 19 , DMName: "Fernando Lopez"},
+        {DMID: 73 , DMName: "Christopher Alonso Stiker"},
+        {DMID: 2 , DMName: "Raphael Barrios"}, 
+    ]
 }
 
 export default Constants;

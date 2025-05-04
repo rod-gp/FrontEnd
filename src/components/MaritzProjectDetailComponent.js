@@ -23,13 +23,13 @@ const MaritzProjectDetailComponent = () => {
         ManagerID: '',
         Softtek_ProjectID: '',
         Active: 1,
-        Monthly_Rate: 0
+        Monthly_Rate: 0,
+        DMID : ''
     });
     const [errorMessage, setErrorMessage] = useState(''); 
     const [loading, setLoading] = useState(''); 
     const [success, setSuccess] = useState(false);
     const [managerlist, setManagerList] = useState([]);
-    //const [validationErrors, setValidationErrors] = useState({});
     const [softtekProjectList, setSofttekProjectList] = useState([]);
     const [employeeProjectList, setEmployeeProjectList] = useState([]);
 
@@ -262,6 +262,24 @@ const MaritzProjectDetailComponent = () => {
                                 
                             </td>
                         </tr>
+                        <tr>
+                            <td valign='middle'>Assign DM</td>
+                            <td>
+                            <select
+                                name="DMID"
+                                value={project.DMID}
+                                onChange={handleChange}
+                                className={`form-select ${errorMessage.Reports_To ? 'is-invalid' : ''}`}
+                            >
+                                <option value="">-- Select a DM --</option>
+                                    {Constants.DMS.map((dmlst) => (
+                                    <option key={dmlst.DMID} value={dmlst.DMID}>
+                                        {dmlst.DMName} 
+                                </option>
+                                ))}
+                            </select>
+                            </td>
+                            </tr>
                     </tbody>
                 </table>
                 <button type="submit" className="btn btn-success">{isNewProject ? 'Create' : 'Save'}</button>
