@@ -51,28 +51,23 @@ const MonthlyReport = () => {
             setProjects(projectList.data);
       
             const response = await FinanceDataService.getDaysPerMonth(selectedYear);
-            
-            console.log(response.data.length );
-            console.log("selectedMonth:", selectedMonth);
+
 
             if(response.data && response.data.length > 0)  {
                 const days = response.data.find((item) => {
                     const itemMonth = new Date(item.Date).getUTCMonth() + 1; 
-                    console.log("Item Month:", itemMonth);
                 
                     return Number(itemMonth) === Number(selectedMonth);
                 });
 
                 if (days) {
-                    console.log(days.Days); // Log the found days
+
                     setDaysPerMonth(days.Days); // Set the days in state
                 } else {
                     console.log("No data found for the selected month");
                 }
 
             }                  
-                    
-
 
         }
         
@@ -83,6 +78,11 @@ const MonthlyReport = () => {
     function getProjectById(projectID) {
         const tmp = projects.find(project => parseInt(project.Maritz_ProjectID) === parseInt(projectID));    
         return tmp;
+    }
+
+    function getDMCost(projectID){
+
+        
     }
 
     function getNameById(empID) {

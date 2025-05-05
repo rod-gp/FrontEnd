@@ -48,7 +48,7 @@ const Constants = {
     DMS : [
         {DMID: 19 , DMName: "Fernando Lopez"},
         {DMID: 73 , DMName: "Christopher Alonso Stiker"},
-        {DMID: 2 , DMName: "Raphael Barrios"}, 
+        {DMID: 2 , DMName: "Raphael Barrios"},  
     ]
 }
 
