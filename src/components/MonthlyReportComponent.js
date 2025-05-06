@@ -5,6 +5,7 @@ import EmployeeProjectDataService from "../services/employeeProject.service";
 import FinanceDataService from '../services/finance.service';
 import dds from "../services/dashboard.service.js";
 import { NumericFormat } from "react-number-format";
+import Constants from "../constants/Constants";
 
 const MonthlyReport = () => {
 
@@ -12,14 +13,19 @@ const MonthlyReport = () => {
     const [selectedMonth, setMonth] = useState('');
     const [pnlData, setPnlData] = useState([]);
     const [selectedProject, setSelectedProject] = useState('');
+    const [selectedWBS, setSelectedWBS] = useState('');
     const [projects, setProjects] = useState([]); 
     const [employees, setEmployees] = useState([]);
     const [daysPerMonth, setDaysPerMonth] = useState([]);
+    const [isLoading, setLoading] = useState(false);
+    const [stkProj, setStkProj] = useState([]);
+    const [radioValue, setRadioValue] = useState('maritz')
+    const [projInWBS, setProjInWBS] = useState([]);
+
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                
+            try {              
                 const response = await EmployeeProjectDataService.getEmployeesAssignedToProject(selectedProject);
                 if (response && response.data) {
                     setEmployees(response.data);
@@ -31,27 +37,68 @@ const MonthlyReport = () => {
                 console.error('Error fetching employee data:', error);
                 setEmployees([]);  // Set an empty array if there is an error
             }
-        };
-    
+        };    
         // Only fetch data if selectedProject is valid
         if (selectedProject) {
             fetchData();
         }
     }, [selectedProject]); 
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {   
+                setEmployees([]);   
+                setProjInWBS([]);        
+                const projInWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS)); 
+                setProjInWBS(projInWBS);
+
+                const allEmployees= await Promise.all(
+                    projInWBS.map(pr =>                    
+                        EmployeeProjectDataService.getEmployeesAssignedToProject(pr.Maritz_ProjectID))
+                );        
+
+                const flattened = allEmployees.map(res => res.data).flat();
+                //console.log(flattened);
+                setEmployees(flattened);
+
+            }
+            catch (error) {
+                console.error('Error fetching employee data:', error);
+                setEmployees([]);  // Set an empty array if there is an error
+            }
+        }
+        if (selectedWBS) {
+            fetchData();
+        }
+    },[selectedWBS ,projects] );
+
+
     useEffect(()  => {
         const getData= async ()=>{
             if(!selectedMonth) return;
 
+            setSelectedProject('');
+            setProjects([]);
+            setLoading(true);
             const theDate = selectedYear+'-'+selectedMonth+'-01';
             const res = await dds.getPLbyMonth(theDate);
             setPnlData(res.data);          
             
             const projectList = await maritzProjectDataService.getAllProjects();              
-            setProjects(projectList.data);
-      
-            const response = await FinanceDataService.getDaysPerMonth(selectedYear);
+           
+            setProjects(projectList.data);      
+            
+            const seen = new Set();
+            const stkProj = projectList.data
+              .map(proj => proj.Softtek_Project)
+              .filter(proj => {
+                if (seen.has(proj.Softtek_ProjectID)) return false;
+                seen.add(proj.Softtek_ProjectID);
+                return true;
+              });
+            setStkProj(stkProj);
 
+            const response = await FinanceDataService.getDaysPerMonth(selectedYear);
 
             if(response.data && response.data.length > 0)  {
                 const days = response.data.find((item) => {
@@ -67,7 +114,8 @@ const MonthlyReport = () => {
                     console.log("No data found for the selected month");
                 }
 
-            }                  
+            }                
+            setLoading(false);  
 
         }
         
@@ -75,15 +123,34 @@ const MonthlyReport = () => {
 
     },[selectedMonth]);
 
+    useEffect(()  => {
+            if(!selectedMonth) return;
+            setSelectedProject('');
+            setProjects([]);
+            setEmployees([]);
+            setSelectedWBS('');
+            setProjInWBS([]);
+            setMonth('')
+
+    },[radioValue]);
+
     function getProjectById(projectID) {
         const tmp = projects.find(project => parseInt(project.Maritz_ProjectID) === parseInt(projectID));    
-        return tmp;
+        return tmp.Project_Name;
     }
 
-    function getDMCost(projectID){
-
-        
+    function getWBSbyID(wbs) {
+        const tmp = stkProj.find(project => parseInt(project.Softtek_ProjectID) === parseInt(wbs));    
+        return tmp.Project_WBS;
     }
+
+
+    function getDMById(id){
+        const dm = (Constants.DMS.find(dm => Number(dm.DMID) === Number(id)));
+        return dm ? dm.DMName : ''; 
+    }
+
+
 
     function getNameById(empID) {
         if (!Array.isArray(employees) || employees.length === 0) {
@@ -94,18 +161,42 @@ const MonthlyReport = () => {
         if (tmp && tmp.Employee && tmp.Employee.Name) {
             return tmp.Employee.Name;
         } else {
-            return empID; // Or handle accordingly
+            return getDMById(empID); // Or handle accordingly
         }
     }
 
-    const filtered = selectedProject
-        ? pnlData.filter(d => d.Maritz_ProjectID === parseInt(selectedProject))
-        : [];
+    const selectedIDs = Array.isArray(projInWBS) && projInWBS.length > 0
+    ? projInWBS.map(p => parseInt(p.Maritz_ProjectID))
+    : [parseInt(selectedProject)];
 
-    const filteredEmployee = selectedProject
-        ? pnlData.filter(d =>(d.Maritz_ProjectID === parseInt(selectedProject) && d.Color === "Direct_Cost"))
-        : [];
     
+    const dcEmp = selectedIDs.length > 0
+    ? pnlData.filter(d =>
+        selectedIDs.includes(parseInt(d.Maritz_ProjectID)) &&
+        d.Color === "Direct_Cost"
+      )
+    : [];
+    
+    console.log(dcEmp);
+        const filteredEmployee = Object.values(
+            dcEmp.reduce((acc, item) => {
+            const key = `${item.Color}-${item.EmployeeID}`; // Grouping by Color + EmployeeID only
+            if (!acc[key]) {
+                acc[key] = { ...item };
+                delete acc[key].Maritz_ProjectID; // Optional: remove project ID since it's not relevant
+            } else {
+                acc[key].hours += item.hours;
+            }
+            return acc;
+            }, {})
+        );
+
+
+
+    const filtered = selectedIDs.length > 0
+    ? pnlData.filter(d => selectedIDs.includes(parseInt(d.Maritz_ProjectID)))
+    : [];
+
     const groupedSums = filtered.reduce((acc, item) => {
         const key = item.Color;
         if (!acc[key]) {
@@ -133,6 +224,8 @@ const MonthlyReport = () => {
         return total;
       }, 0);
 
+    
+
       const totalHours = filteredEmployee.reduce((total, item) => total + item.hours, 0);
       const totalCost = filteredEmployee.reduce((total, item) => total + item.amount*item.hours, 0);
 
@@ -146,12 +239,25 @@ const MonthlyReport = () => {
     return(
 
         <div className="container mt-4">
-            <h3>Monthly Report</h3>
+            <h3>Monthly Report by WBS and Maritz Project</h3>
             <div className="row w-75">
-                <div className="col align-items-center">
+                <div className="col-3 d-flex flex-row  align-items-center justify-content-around">
+                    <div className="p-2">
+                        <input type="radio" className="form-check-input" id="radio1" name="optradio" value="wbs" 
+                        checked={radioValue === 'wbs'}
+                        onChange={(e) => setRadioValue(e.target.value)} /> WBS
+                    </div>
+                    <div className="p-2">
+                        <input type="radio" className="form-check-input" id="radio2" name="optradio" value="maritz"
+                        checked={radioValue === 'maritz'} 
+                        onChange={(e) => setRadioValue(e.target.value)}
+                         /> Project
+                    </div>
+                </div>
+                <div className="col-2 align-items-center d-flex flex-row  ">
                     <label className="me-2 fw-bold">Select the date:</label>  
                 </div>
-                <div className="col">
+                <div className="col-3">
                     <select className="form-select" 
                       
                         value={selectedYear}
@@ -167,7 +273,7 @@ const MonthlyReport = () => {
                     <option value="2028">2028</option>
                     </select>
                 </div>
-                <div className="col">
+                <div className="col-3">
                     <select 
                         className="form-select" 
                         value={selectedMonth}
@@ -189,48 +295,80 @@ const MonthlyReport = () => {
                         <option value="11">November</option>
                         <option value="12">December</option>
                     </select>
+
+              
+                </div>
+                <div className="col-1 align-items-end">
+                    {isLoading ?
+                        <div className="spinner-border"></div>
+                        :''
+                    }
                 </div>
             </div> 
 
 
-            <div className="row w-75">
-                {projects.length>0 && (
-                    <Form.Group controlId="projectSelect">
-                    
-                        <Form.Label>Select Project:</Form.Label>
-                    
-                        <Form.Select
-                        value={selectedProject || ''}
-                        onChange={(e)=> setSelectedProject(e.target.value)}
-                        >
-                        <option value="">-- Select Project --</option>
-                        {projects.map(id => (
-                            <option key={id.Maritz_ProjectID} value={id.Maritz_ProjectID}>{id.Project_Name}</option>
-                        ))}
-                        </Form.Select>
-                        
-                    </Form.Group>
-                )}
-            </div>
             
-                {selectedProject &&   (
+                {projects.length>0 && (
+                   radioValue ==='maritz' ? (                
+                   <div className="d-flex flex-row w-75 align-items-center ">
+                        <div className="d-flex flex-column ms-2 p-2">                                               
+                            Select Project: 
+                        </div>
+                        <div className="d-flex flex-column p-2">
+                                <select
+                                    value={selectedProject || ''}
+                                    className="form-select" 
+                                    onChange={(e)=> setSelectedProject(e.target.value)}
+                                    >
+                                    <option value="">-- Select Project --</option>
+                                    {projects.map(id => (
+                                        <option key={id.Maritz_ProjectID} value={id.Maritz_ProjectID}>{id.Project_Name}</option>
+                                    ))}
+                                </select> 
+                        </div> 
+                    </div>
+                    ) : (
+                    <div className="d-flex flex-row w-75 align-items-center ">
+                        <div className="d-flex flex-column ms-2 p-2">                  
+                            Select WBS: 
+                        </div>
+                        <div className="d-flex flex-column p-2">
+                            <select
+                            className="form-select" 
+                            value={selectedWBS || ''}
+                            onChange={(e)=> setSelectedWBS(e.target.value)}
+                            >
+                            <option value="">-- Select Project --</option>
+                            {stkProj.sort((a, b) => a.Project_WBS.localeCompare(b.Project_WBS, undefined, { sensitivity: 'base' }))
+                              .map(id => (
+                            <option key={id.Softtek_ProjectID} value={id.Softtek_ProjectID}>{id.Project_WBS}</option>
+                            ))}
+                            </select>                        
+                        </div>
+                    </div>
+                
+                   ))}
+           
+            
+                {(selectedProject|| selectedWBS )&&   (
                   <div className="row mt-4">  
                    
-                    <h5>Profit & Loss Report for {getProjectById(selectedProject).Project_Name}</h5>
+                    <h5>Profit & Loss Report for {(selectedProject)? getProjectById(selectedProject): getWBSbyID(selectedWBS) }</h5>
                     <div className="col-6 mt-2">
                         <Table striped bordered 
                         style={{ width:'500px', fontSize: '16px', padding: '0.5rem' }}
                         size="sm">
                             <thead>
                             <tr>
-                                <th>Employee ID ({daysPerMonth*8} hrs Expected)</th>
-                                <th>Hours</th>
-                                <th align="right">Cost</th>
+                                <th>Employee Name ({daysPerMonth*8} hrs Expected)</th>
+                                <th style={{textAlign: 'center'}}>Hours</th>
+                                <th style={{textAlign: 'center'}}>Cost</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {filteredEmployee.map((item) => (
-                            <tr key={item.EmployeeID}>
+                               
+                            {filteredEmployee.map((item, index) => (
+                            <tr key={index}>
                                 <td>{getNameById(item.EmployeeID)}</td>
                                 <td align="center">
                                 <NumericFormat                     
@@ -254,6 +392,7 @@ const MonthlyReport = () => {
                                     </td>
                             </tr>
                             ))}
+
                             <tr>
                                 <td><strong>Total</strong></td>
                                 <td align="center"><strong>
@@ -290,7 +429,7 @@ const MonthlyReport = () => {
                             <tbody>
                                 {["Revenue", "Direct_Cost", "Other_Cost"].map(color => (
                                 <tr key={color}>
-                                <td>{color}</td>               
+                                <td>{color==='Direct_Cost'?'Direct Cost':(color==='Other_Cost'?'Other Cost':color)}</td>               
                                 <td align='right'>
                                     <NumericFormat                     
                                     value= {groupedSums[color]?.amount.toFixed(2) ?? "0.00"}

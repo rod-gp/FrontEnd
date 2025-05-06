@@ -51,7 +51,10 @@ function App() {
                         <Link className="nav-link" to="/dash/revenue">Revenue</Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link" to="/dash/pnl">P&L</Link>
+                        <Link className="nav-link" to="/dash/pnl">Project P&L</Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/dash/hspnl">Historic P&L</Link>
                     </li>
 
 

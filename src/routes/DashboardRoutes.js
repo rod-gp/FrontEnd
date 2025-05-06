@@ -3,6 +3,7 @@ import HomeDashboardComponent from "../components/DashboardComponent";
 import AttritionComponent from "../components/AttritionComponent";
 import RevenueComponent from "../components/RevenueComponent";
 import MonthlyReport from "../components/MonthlyReportComponent";
+import HistoricReport from "../components/HistoricReportComponent";
 
 const DashboardRoutes = () => {
   return (
@@ -11,6 +12,7 @@ const DashboardRoutes = () => {
       <Route path="/attrition" element={<AttritionComponent />} />
       <Route path="/revenue" element={<RevenueComponent />} />
       <Route path="/pnl" element={<MonthlyReport />} />
+      <Route path="/hspnl" element={<HistoricReport />} />
     </Routes>
   );
 };
