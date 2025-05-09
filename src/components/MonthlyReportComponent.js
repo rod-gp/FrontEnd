@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
 import maritzProjectDataService from "../services/maritzProject.service";
 import EmployeeProjectDataService from "../services/employeeProject.service";
 import FinanceDataService from '../services/finance.service';
@@ -8,6 +8,8 @@ import { NumericFormat } from "react-number-format";
 import Constants from "../constants/Constants";
 
 const MonthlyReport = () => {
+
+   
 
     const [selectedYear, setYear] = useState(new Date().getFullYear());
     const [selectedMonth, setMonth] = useState('');
@@ -108,7 +110,6 @@ const MonthlyReport = () => {
                 });
 
                 if (days) {
-
                     setDaysPerMonth(days.Days); // Set the days in state
                 } else {
                     console.log("No data found for the selected month");
@@ -219,12 +220,12 @@ const MonthlyReport = () => {
 
       const infrastructureCost = Object.keys(groupedSums).reduce((total, color) => {
         if (color === 'Direct_Cost' && groupedSums[color]?.hours) {          
-          return total + (groupedSums[color].hours * (140/(daysPerMonth*8)));
+          return total + (groupedSums[color].hours * ( Constants.INFRASTRUCTURE[0].Cost /(daysPerMonth*8)));
         }
         return total;
       }, 0);
 
-    
+     
 
       const totalHours = filteredEmployee.reduce((total, item) => total + item.hours, 0);
       const totalCost = filteredEmployee.reduce((total, item) => total + item.amount*item.hours, 0);

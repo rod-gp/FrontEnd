@@ -39,10 +39,10 @@ const Constants = {
     ],
 
     INFRASTRUCTURE :[
-        {Country: "Mexico", Cost:  140 },
-        {Country: "India", Cost:  140 },
-        {Country: "Colombia", Cost:  140 },
-        {Country: "USA", Cost: 140},
+        {Country: "Mexico", Cost: 157.3 },
+        {Country: "India", Cost: 157.3 },
+        {Country: "Colombia", Cost: 157.3 },
+        {Country: "USA", Cost: 157.3 },
     ],
 
     DMS : [
@@ -50,6 +50,10 @@ const Constants = {
         {DMID: 73 , DMName: "Christopher Alonso Stiker"},
         {DMID: 2 , DMName: "Raphael Barrios"},  
     ]
+
+  
 }
+
+
 
 export default Constants;
