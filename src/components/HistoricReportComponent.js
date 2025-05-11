@@ -15,10 +15,20 @@ const HistoricReport = () =>{
     const [theContainer, setContainer] = useState('');
     const [pnlData, setPnlData] = useState([]);
     const [isLoading, setLoading] = useState(false);
-    const [theDates, setTheDates] = useState([]);
-    const [projInWBS, setProjInWBS] = useState([]);
     const [daysInMonth, setDaysInMonths] = useState([]);
     const [aggregatedData, setAggregatedData] = useState([]);
+
+     const [activeTab, setActiveTab] = useState('');
+
+      const handleTabClick = (tabId) => {
+          setSelectedProject('');
+          setSelectedWBS('');
+          setAggregatedData([]);
+          setPnlData([]);  
+          setActiveTab(tabId);
+          setContainer(tabId); 
+      };
+
 
 
     useEffect(() => {
@@ -43,90 +53,104 @@ const HistoricReport = () =>{
     }, []);
 
     useEffect(() =>{
+      const fetch= async()=>{
         setSelectedProject('');
         setSelectedWBS('');
+        setAggregatedData([]);
 
-    },[radioValue])
-
-    useEffect(() =>{       
-       const fetchData= () => {
-            const pIWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS)); 
-            setProjInWBS(pIWBS);       
-
-            const dt = (pnlData.length>0) ? aggregateByDate(pnlData):[];        
-            setAggregatedData(dt);
+        if(radioValue==='account'){
+          console.log('inside account')
+          console.log(projects);
+          //const pIWBS = projects.map(pro => Number(pro.Maritz_ProjectID));
+         
+          const tmp =  aggregateByDate(projects);
+          console.log(tmp)  
+          setAggregatedData(tmp);
         }
-        fetchData();
+      }
+      fetch();
 
-    },[selectedWBS,projects])
+    },[radioValue, projects])
+
+    useEffect(() => {
+      const pIWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS));
+      
+      const tmp =  aggregateByDate(pIWBS);  
+      setAggregatedData(tmp);
+      
+      
+    }, [selectedWBS, projects]);
 
     useEffect(() =>{       
         const fetchData= () => { 
-             const dt = (pnlData.length>0) ? aggregateByDate(pnlData):[];        
-             setAggregatedData(dt);
-         }
-         fetchData();
+
+      const tmp = aggregateByDate(selectedProject);        
+      setAggregatedData(tmp);
+             
+        }
+        
+         if (pnlData && pnlData.length > 0){
+            fetchData();
+        }
+    
  
      },[selectedProject,projects])
  
 
     useEffect(() =>{
-        const getData = async() => {
-         
-            setPnlData([]);
+       
+        const getAllData = async() => {
+              setSelectedProject('');
+              setSelectedWBS('');
+              setAggregatedData([]);
+              setPnlData([]);
+              setRadioValue('');
 
-            const now = new Date();            
-            const containerToMonths = {
-                '#cm': 1,
-                '#l3m': 3,
-                '#ytd': now.getUTCMonth() + 1, // Months are zero-based
-                '#l12m': 12
-              };
+              const now = new Date();            
+              const containerToMonths = {
+                  '#cm': 1,
+                  '#l3m': 3,
+                  '#ytd': now.getUTCMonth() + 1, // Months are zero-based
+                  '#l12m': 12
+                };
 
-            const totalMonths = containerToMonths[theContainer] ?? '';
+              const totalMonths = containerToMonths[theContainer] ?? '';
 
-            const theDates = getLastNDates(Number(totalMonths));    
-            const uniqueYears = [...new Set(theDates.map(date => new Date(date).getUTCFullYear()))];
+              const theDates = getLastNDates(Number(totalMonths));    
+              const uniqueYears = [...new Set(theDates.map(date => new Date(date).getUTCFullYear()))];
+              
+              setLoading(true);
+              const daysList =  (await Promise.all(
+                  uniqueYears.map(async td => FinanceDataService.getDaysPerMonth(td) )
+                  ))
+                  .map(response => response.data)
+                  .flat();
 
-            setTheDates(theDates);
-
-            setLoading(true);
-
-
-            const daysList =  (await Promise.all(
-                uniqueYears.map(async td => FinanceDataService.getDaysPerMonth(td) )
-                ))
-                .map(response => response.data)
-                .flat();
-
-
-            
-            setDaysInMonths(daysList);
-
-            
-            const thePnlData = (await Promise.all(
-                theDates.map(async td => {
-                  const result = await dds.getPLbyMonth(td);
-                  if (!result || !Array.isArray(result.data)) {
-                    console.error(`Expected an array in result.data, but received:`, result);
-                    return [];  // Return an empty array if 'data' is not an array
-                  }
-                  return result.data.map(item => ({
-                    ...item,
-                    date: td
-                  }));
-                })
-              )).flat();
+              setDaysInMonths(daysList);
+              
+              const thePnlData = (await Promise.all(
+                  theDates.map(async td => {
+                    const result = await dds.getPLbyMonth(td);
+                    if (!result || !Array.isArray(result.data)) {
+                      console.error(`Expected an array in result.data, but received:`, result);
+                      return [];  // Return an empty array if 'data' is not an array
+                    }
+                    return result.data.map(item => ({
+                      ...item,
+                      date: td
+                    }));
+                  })
+                )).flat();
 
             setLoading(false);           
-           setPnlData(thePnlData);
-           setAggregatedData(aggregateByDate(thePnlData));
+            setPnlData(thePnlData);         
+          }
+      getAllData();
 
-        }
-        getData();
 
     },[theContainer])
 
+  
     function findWorkingDays(date) {
         const [year, month] = date.split('-');
       
@@ -142,6 +166,7 @@ const HistoricReport = () =>{
       }
 
     function formatDate (date) {
+        if (date==='TOTAL') return 'Total';
         const d = new Date(date)
         const monthAbbr = d.toLocaleString('en-US', { month: 'short',timeZone: 'UTC' }); 
         const yearShort = d.getUTCFullYear().toString().slice(-2); 
@@ -160,18 +185,25 @@ const HistoricReport = () =>{
           dates.push(`${year}-${month}-01`);
           now.setUTCMonth(now.getUTCMonth() - 1);
         }
-        //console.log(dates);
-        return dates;
+        
+        return dates.reverse();
       }
 
-      function aggregateByDate(data) {
+  const aggregateByDate = (input) => {
         const results = {};
-      
-        const selectedIDs = Array.isArray(projInWBS) && projInWBS.length > 0
-        ? projInWBS.map(p => parseInt(p.Maritz_ProjectID))
-        : [parseInt(selectedProject)];
 
-        data
+        let selectedIDs = [];
+
+        if (Array.isArray(input)) {
+          selectedIDs = input.map(id => parseInt(id.Maritz_ProjectID));
+        } else if (!isNaN(input)) {
+          selectedIDs = [parseInt(input)];
+        } else {
+          console.warn("aggregateByDate: Invalid input", input);
+          return results; // return empty if input is invalid
+        }
+
+        pnlData
         .filter(item => selectedIDs.includes(item.Maritz_ProjectID))
         .forEach(item => {
           const { date, Color, hours, amount } = item;
@@ -207,51 +239,71 @@ const HistoricReport = () =>{
           entry.Total_Cost = entry.Direct_Cost + entry.Other_Cost + entry.Infrastructure;
           entry.Gross_Margin = entry.Revenue - entry.Total_Cost;
           entry.Gross_Margin_Percent = entry.Revenue ? entry.Gross_Margin / entry.Revenue : 0;
-      
-
         });
       
-        //console.log(Object.values(results));
-        return Object.values(results); 
+        const values = Object.values(results);
+
+        const totals = values.reduce((acc, row) => {
+           for (const key in row) {
+            if (key === "date") {
+              acc[key] = "TOTAL";
+            } else {
+              acc[key] = (acc[key] || 0) + (parseFloat(row[key]) || 0);
+            }
+          }
+          return acc;
+        }, {});
+
+        totals.Gross_Margin_Percent = totals.Revenue
+          ? totals.Gross_Margin / totals.Revenue
+          : 0;
+
+        values.push(totals);
+        
+        return  values;        
       }
 
-      const generateTransposedTable = (aggregateByDate) => {
-        // Get all the dates from the aggregated data
-        const dates = Object.keys(aggregateByDate);
-        // Define the metrics you want to display in the table
+      const generateTransposedTable = () => {
+
+        if(!aggregatedData || Object.keys(aggregatedData).length === 0)
+           return '';
+
+        const dates = Object.keys(aggregatedData);
+        
         const metrics = [
-          'Revenue',
-          'Direct_Cost',
-          'Other_Cost',
-          'Infrastructure',
-          'Total_Cost',
-          'Gross_Margin',
-          'Gross_Margin_Percent'
+          {id: 'Revenue', name:'Revenue'},
+          {id: 'Direct_Cost',name:'Direct Cost'},
+          {id: 'Other_Cost' ,name:'Other Cost'},
+          {id: 'Infrastructure' ,name:'Infrastructure'},
+          {id: 'Total_Cost',name:'Total Cost'},
+          {id: 'Gross_Margin',name:'Gross Margin'},
+          {id: 'Gross_Margin_Percent',name:'Gross Margin %'},
+          {id: 'Total_Hours',name:'Total Hours'}
         ];
       
         // Return the table as JSX
         return (
-          <div className="table-responsive">
-            <table className="table table-bordered table-striped small" style={{width: '700px'}}>
+          <div className="table-responsive w-75">
+            <table className="table table-bordered table-striped small">
               <thead>
                 <tr className='table-dark'>
-                  <th></th>
+                  <th style={{width: '15%'}}></th>
                   {dates.map(date => (                  
-                    <th style={{textAlign: 'center'}} key={aggregateByDate[date].date}>{formatDate(aggregateByDate[date].date)} </th>                  
+                    <th style={{textAlign: 'center',width: `${85/dates.length}%`}} key={aggregatedData[date].date}>{formatDate(aggregatedData[date].date)} </th>                  
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {metrics.map(metric => (
-                  <tr key={metric}>
-                    <td>{metric}</td>
+                  <tr key={metric.id}>
+                    <td >{metric.name}</td>
                     {dates.map(date => {
-                      const data = aggregateByDate[date];
-                      let value = data[metric];
+                      const data = aggregatedData[date];
+                      let value = data[metric.id];
       
                       // If it's Gross Margin Percentage, convert to percentage format
-                      if (metric === 'Gross_Margin_Percent') {
-                        return <td align='right' key={`${date}-${metric}`}> 
+                      if (metric.id === 'Gross_Margin_Percent') {
+                        return <td align='right' key={`${date}-${metric.id}`}> 
                         <NumericFormat                     
                             value=  {value*100}
                             displayType="text"
@@ -262,8 +314,19 @@ const HistoricReport = () =>{
                          /> 
                         
                         </td>
-                      } else {
-                      return <td align='right' key={`${date}-${metric}`}>
+                      } if (metric.id === 'Total_Hours') {
+                        return <td align='right' key={`${date}-${metric.id}`}> 
+                             <NumericFormat                     
+                            value=  {value}
+                            displayType="text"
+                            thousandSeparator={true}
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            prefix=""
+                         /> </td>
+
+                      }else {
+                      return <td align='right' key={`${date}-${metric.id}`}>
                          <NumericFormat                     
                             value=  {value}
                             displayType="text"
@@ -289,8 +352,35 @@ const HistoricReport = () =>{
     return(
         <div className="container mt-4">
             <h3>Historic Report by WBS and Maritz Project</h3>
-            <div className="row">
-                <div className="col-2 d-flex flex-row align-items-center justify-content-around">
+            <div className="row">                            
+                <div className="col-5  d-flex flex-row  align-items-start">
+
+                      <ul className="nav nav-pills">
+                            {[
+                              { id: '#cm', label: 'Current Month' },
+                              { id: '#l3m', label: 'Last 3 Months' },
+                              { id: '#ytd', label: 'YTD' },
+                              { id: '#l12m', label: 'L12M' }
+                            ].map(tab => (
+                              <li className="nav-item" key={tab.id}>
+                                <button
+                                  type="button"
+                                  className={`nav-link ${activeTab === tab.id ? 'active' : ''}`}
+                                  onClick={() => handleTabClick(tab.id)}
+                                >
+                                  {tab.label}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                </div>      
+              
+                <div className="col-3 d-flex flex-row align-items-center justify-content-around">
+                    <div className="p-2">
+                        <input type="radio" className="form-check-input" id="radio0" name="optradio" value="account" 
+                        checked={radioValue === 'account'}
+                        onChange={(e) => setRadioValue(e.target.value)} /> Account
+                    </div>
                     <div className="p-2">
                         <input type="radio" className="form-check-input" id="radio1" name="optradio" value="wbs" 
                         checked={radioValue === 'wbs'}
@@ -303,8 +393,8 @@ const HistoricReport = () =>{
                          /> Project
                     </div>
                 </div>
-                <div className="col-3 d-flex flex-row align-items-center ">                       
-                {radioValue && projects.length>0 && (
+                <div className="col-2 ms-5 d-flex flex-row align-items-center ">                       
+                {!isLoading && radioValue  && (
                    radioValue ==='maritz' ? (                
                         <select
                                 value={selectedProject || ''}
@@ -316,7 +406,7 @@ const HistoricReport = () =>{
                                     <option key={id.Maritz_ProjectID} value={id.Maritz_ProjectID}>{id.Project_Name}</option>
                                 ))}
                         </select> 
-                    ) : (
+                    ) : (radioValue ==='wbs')?(
                         <select
                             className="form-select" 
                             value={selectedWBS || ''}
@@ -328,26 +418,9 @@ const HistoricReport = () =>{
                             <option key={id.Softtek_ProjectID} value={id.Softtek_ProjectID}>{id.Project_WBS}</option>
                             ))}
                         </select> 
-                   ))}
+                   ):'')}
                 </div>
-              { (selectedWBS || selectedProject) && (
-                <div className="col-5 d-flex flex-row  align-items-center justify-content-around">
-                    <ul className="nav nav-pills">
-                        <li className="nav-item" >
-                            <a className="nav-link" data-bs-toggle="pill" onClick={() => setContainer('#cm')} >Current Month</a>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" data-bs-toggle="pill" onClick={() => setContainer('#l3m')} >Last 3 Months</a>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" data-bs-toggle="pill" onClick={() => setContainer('#ytd')} >YTD</a>
-                        </li>
-                        <li className="nav-item">
-                            <a className="nav-link" data-bs-toggle="pill" onClick={() => setContainer('#l12m')} >L12M</a>
-                        </li>
-                    </ul>
-                </div>      
-              ) }
+
             <div className="col-1 align-items-end">
                 {isLoading ? <div className="spinner-border"></div> :''}
             </div>
@@ -361,7 +434,7 @@ const HistoricReport = () =>{
                     {theContainer === '#ytd' ? 'Year To Date':''}       
                     {theContainer === '#l12m' ? 'Last 12 Months':''}
 
-            {generateTransposedTable(aggregatedData)}
+            { (aggregatedData) && generateTransposedTable()}
             </div>
             </>)}
 
