@@ -7,6 +7,7 @@ import { NumericFormat } from "react-number-format";
 const SofttekProjectListComponent = () => {
 
     const [projects, setProjects] = useState([]); 
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
     useEffect(() => {
         softtekProjectDataService.getProjects()
@@ -15,26 +16,62 @@ const SofttekProjectListComponent = () => {
     }  , []);
 
 
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getValueByPath = (obj, path) => {
+        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    };
+
+    const sortedProjects = [...projects].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    let aValue = getValueByPath(a, sortConfig.key) ?? '';
+    let bValue = getValueByPath(b, sortConfig.key) ?? '';
+
+    // If sorting Monthly_Rate, strip '$' and ',' and parse as float
+    if (sortConfig.key === 'TCV') {
+        aValue = parseFloat(String(aValue).replace(/[$,]/g, '')) || 0;
+        bValue = parseFloat(String(bValue).replace(/[$,]/g, '')) || 0;
+    }
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return sortConfig.direction === 'asc'
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
+    });
+
+
+
     return(
         <div className="container mt-4">
             <table className="table table-striped table-sm" style={{ width: '1300px' }}>
             <thead className="table-dark">
             <tr>
-              <th>ID</th>
+              <th onClick={() => handleSort('ID')}>ID</th>
               <th>Project Name</th>
-              <th>Project WBS</th>
+              <th onClick={() => handleSort('Project_WBS')}>Project WBS</th>
               <th>Start Date</th>
               <th>End Date</th>
-              <th>TCV</th>
+              <th onClick={() => handleSort('TCV')}>TCV</th>
               <th>CRM Opportunity</th>
               <th>CRM Order</th>
-              <th>Practice</th>
-              <th>Type</th> 
+              <th onClick={() => handleSort('Practice')}>Practice</th>
+              <th onClick={() => handleSort('Type')}>Type</th> 
               <th align ='center'>Action</th>
             </tr>
             </thead>
             <tbody>
-                {projects.map((project) => (
+                {sortedProjects.map((project) => (
                 <tr key={project.Softtek_ProjectID}>
                     <td valign='middle'>{project.Softtek_ProjectID}</td>
                     <td valign='middle'>{project.Project_Name}</td>

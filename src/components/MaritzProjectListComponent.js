@@ -6,6 +6,7 @@ import { NumericFormat } from "react-number-format";
 const MaritzProjectListComponent = () => {
 
     const [projects, setProjects] = useState([]); 
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     
     useEffect(() => {
         maritzProjectDataService.getAllProjects()
@@ -14,32 +15,65 @@ const MaritzProjectListComponent = () => {
     }
     , []);
 
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getValueByPath = (obj, path) => {
+        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    };
+
+    const sortedProjects = [...projects].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    let aValue = getValueByPath(a, sortConfig.key) ?? '';
+    let bValue = getValueByPath(b, sortConfig.key) ?? '';
+
+    // If sorting Monthly_Rate, strip '$' and ',' and parse as float
+    if (sortConfig.key === 'Monthly_Rate') {
+        aValue = parseFloat(String(aValue).replace(/[$,]/g, '')) || 0;
+        bValue = parseFloat(String(bValue).replace(/[$,]/g, '')) || 0;
+    }
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return sortConfig.direction === 'asc'
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
+    });
+
     return(
         <div className="container mt-4">
             <table className="table table-striped table-sm" >
             <thead className="table-dark">
             <tr>
-              <th>ID</th>
-              <th>Project Name</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>SOW</th>
-              <th>Cost Center</th>
-              <th>Manager</th>
-              <th>HC</th>
-              <th>WBS</th>
-              <th>Status</th>
-              <th>Monthly Rate</th>
-              <th align ='center'>Action</th>
+                <th onClick={() => handleSort('ID')}>ID</th>
+                <th onClick={() => handleSort('Project_Name')}>Project Name</th>
+                <th onClick={() => handleSort('Start_Date')}>Start Date</th>
+                <th onClick={() => handleSort('End_Date')}>End Date</th>
+                <th onClick={() => handleSort('SOW_Name')}>SOW</th>
+                <th onClick={() => handleSort('Cost_Center')}>Cost Center</th>
+                <th onClick={() => handleSort('Manager.Name')}>Manager</th>    
+                <th onClick={() => handleSort('employeeCount')}>HC</th>
+                <th onClick={() => handleSort('Softtek_Project.Project_WBS')}>WBS</th>
+                <th onClick={() => handleSort('Active')}>Status</th>
+                <th onClick={() => handleSort('Monthly_Rate')}>Monthly Rate</th>
+                <th align ='center'>Action</th>
             </tr>
             </thead>
             <tbody>
-                {projects.map((project) => (
+                {sortedProjects.map((project) => (
                 <tr key={project.Maritz_ProjectID}>
                     <td valign='middle'>{project.Maritz_ProjectID}</td>
                     <td valign='middle'>{project.Project_Name}</td>
-                    <td valign='middle'>{new Date(project.Start_Date).toLocaleDateString()}</td>
-                    <td valign='middle'>{new Date(project.End_Date).toLocaleDateString()}</td>
+                    <td valign='middle'>{new Date(project.Start_Date).toLocaleDateString('en-US', {timeZone: 'UTC'})}</td>
+                    <td valign='middle'>{new Date(project.End_Date).toLocaleDateString('en-US', {timeZone: 'UTC'})}</td>
                     <td valign='middle'>{project.SOW_Name}</td>
                     <td valign='middle'>{project.Cost_Center}</td>
                     <td valign='middle'>{project?.Manager.Name}</td>

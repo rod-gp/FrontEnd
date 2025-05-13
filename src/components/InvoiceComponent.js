@@ -10,6 +10,7 @@ const InvoiceComponent =() => {
     const [filteredProjectRoster, setFilteredProjectRoster] = useState([]);
     const [selectedYear, setYear] = useState(new Date().getFullYear());
     const [selectedMonth, setMonth] = useState('');
+    const [allProjects, setallProjects] = useState([]); 
     const [projects, setProjects] = useState([]); 
     const [invoiceTotal, setInvoiceTotal] = useState(0);
     const [invoiceTotalTotal, setInvoiceTotalTotal] = useState(0);
@@ -25,8 +26,9 @@ const InvoiceComponent =() => {
         const getProject = async () => {
             try{
                 const projectList = await maritzProjectDataService.getAllProjects();
-                const onlyActiveProjects = projectList.data.filter(project => project.Active === 1);
-                setProjects(onlyActiveProjects);
+                setallProjects(projectList.data)
+                //const onlyActiveProjects = projectList.data.filter(project => project.Active === 1);
+                //setProjects(onlyActiveProjects);
             }
             catch(error){
                 console.error('Error fetching list of Projects:', error);
@@ -38,14 +40,30 @@ const InvoiceComponent =() => {
 
 
     useEffect(()  => {
-        setFilteredProjectRoster([]);
-        setInvoice([]);
-        setSelectedItem(null);
-        getInvoice();
-        getWorkingDays(selectedMonth);
-      //  getData(selectedItem);
 
-    },[selectedMonth]);
+        const getData = async() =>{
+            const theDate = new Date(`${selectedYear}-${selectedMonth}-01`);
+            
+            let onlyActiveProjects =[];
+
+            if (Array.isArray(allProjects) && allProjects.length > 0) {
+                    onlyActiveProjects = allProjects.filter(project => {
+                        const projectEndDate = new Date(project.End_Date);
+                        return projectEndDate >= theDate;
+                    });
+                    
+                setProjects(onlyActiveProjects);
+                getInvoice(onlyActiveProjects);
+            }
+
+            setFilteredProjectRoster([]);
+            setInvoice([]);
+            setSelectedItem(null);
+            getWorkingDays(selectedMonth);
+        }
+        getData();
+
+    },[selectedMonth, allProjects]);
 
     const getWorkingDays = async (theMonth) =>{
 
@@ -60,7 +78,7 @@ const InvoiceComponent =() => {
     }
 
 
-    const getInvoice = async () =>{
+    const getInvoice = async (onlyActiveProjects) =>{
         try{
             const response = await FinanceDataService.getInvoices(selectedYear,selectedMonth);
             if (!response) return; // safety check
@@ -71,7 +89,7 @@ const InvoiceComponent =() => {
 
             response.data.forEach((projectInvoice) =>{
                 
-                const projData = projects.find(project => project.Maritz_ProjectID === projectInvoice.Maritz_ProjectID);
+                const projData = onlyActiveProjects.find(project => project.Maritz_ProjectID === projectInvoice.Maritz_ProjectID);
                 
                 if (!projData) return; // safety check
 
@@ -109,7 +127,7 @@ const InvoiceComponent =() => {
             });
 
             setInvoice(tempInvoice);
-            console.log(tempInvoice);
+            //console.log(tempInvoice);
         }
         catch(error){
             console.error('Error fetching Invoices from DB:', error);
@@ -426,6 +444,7 @@ const bottomTable = () => {
                 
                 <div className="border-end p-1" style={{ width: "200px"}}>
                     <h5>Project</h5>
+                    {selectedMonth ?(
                     <ul className="list-group">
                         {projects.map((item, index) => (
                         <li
@@ -438,6 +457,7 @@ const bottomTable = () => {
                         </li>
                         ))}
                     </ul>
+                       ):''}
                 </div>
                 <div className="container-fluid" style={{ flex: 1 }} >
                     <div className="row">
