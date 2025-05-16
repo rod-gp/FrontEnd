@@ -10,6 +10,8 @@ const HistoricReport = () =>{
     const [radioValue, setRadioValue] = useState('');
     const [selectedProject, setSelectedProject] = useState('');
     const [selectedWBS, setSelectedWBS] = useState('');
+    const [selectedPid, setSelectedPid] = useState('');
+    const [pids, setPids] = useState([]); 
     const [projects, setProjects] = useState([]); 
     const [stkProj, setStkProj] = useState([]);
     const [theContainer, setContainer] = useState('');
@@ -23,6 +25,7 @@ const HistoricReport = () =>{
       const handleTabClick = (tabId) => {
           setSelectedProject('');
           setSelectedWBS('');
+          setSelectedPid('');
           setAggregatedData([]);
           setPnlData([]);  
           setActiveTab(tabId);
@@ -46,6 +49,13 @@ const HistoricReport = () =>{
                 return true;
               });
             setStkProj(stkProj);
+
+            const uniqueSTKPids = [...new Set(
+                stkProj.map(project => project.Project_WBS.substring(0, project.Project_WBS.lastIndexOf('-')))
+            )].sort();
+
+            setPids(uniqueSTKPids);
+
         }
 
         fetchData();
@@ -59,12 +69,12 @@ const HistoricReport = () =>{
         setAggregatedData([]);
 
         if(radioValue==='account'){
-          console.log('inside account')
-          console.log(projects);
+         // console.log('inside account')
+         // console.log(projects);
           //const pIWBS = projects.map(pro => Number(pro.Maritz_ProjectID));
          
           const tmp =  aggregateByDate(projects);
-          console.log(tmp)  
+          //console.log(tmp)  
           setAggregatedData(tmp);
         }
       }
@@ -73,13 +83,28 @@ const HistoricReport = () =>{
     },[radioValue, projects])
 
     useEffect(() => {
-      const pIWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS));
-      
+      const pIWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS));      
       const tmp =  aggregateByDate(pIWBS);  
       setAggregatedData(tmp);
       
       
     }, [selectedWBS, projects]);
+
+    useEffect(() => {
+      if (!selectedPid) {
+           setAggregatedData([]);
+            return;
+      }
+      
+
+      const pIWBS = projects.filter(project => project.Softtek_Project?.Project_WBS?.startsWith(selectedPid + "-"));
+      
+      const tmp =  aggregateByDate(pIWBS);  
+      setAggregatedData(tmp);
+      
+    }, [selectedPid, projects]);
+
+
 
     useEffect(() =>{       
         const fetchData= () => { 
@@ -102,6 +127,7 @@ const HistoricReport = () =>{
         const getAllData = async() => {
               setSelectedProject('');
               setSelectedWBS('');
+               setSelectedPid('');
               setAggregatedData([]);
               setPnlData([]);
               setRadioValue('');
@@ -150,7 +176,7 @@ const HistoricReport = () =>{
 
     },[theContainer])
 
-  
+  /*
     function findWorkingDays(date) {
         const [year, month] = date.split('-');
       
@@ -164,6 +190,7 @@ const HistoricReport = () =>{
       
         return match ? match.Days : 0;
       }
+*/
 
     function formatDate (date) {
         if (date==='TOTAL') return 'Total';
@@ -235,7 +262,8 @@ const HistoricReport = () =>{
       
         // Post-process each entry to compute calculated fields
         Object.values(results).forEach(entry => {
-          entry.Infrastructure = entry.Total_Hours * (Constants.INFRASTRUCTURE[0].Cost/ (findWorkingDays(entry.date)*8));
+          //entry.Infrastructure = entry.Total_Hours * (Constants.INFRASTRUCTURE[0].Cost/ (findWorkingDays(entry.date)*8));
+          entry.Infrastructure = entry.Total_Hours * (0.89);
           entry.Total_Cost = entry.Direct_Cost + entry.Other_Cost + entry.Infrastructure;
           entry.Gross_Margin = entry.Revenue - entry.Total_Cost;
           entry.Gross_Margin_Percent = entry.Revenue ? entry.Gross_Margin / entry.Revenue : 0;
@@ -286,7 +314,7 @@ const HistoricReport = () =>{
           <div className="table-responsive w-75">
             <table className="table table-bordered table-striped small">
               <thead>
-                <tr className='table-dark'>
+                <tr key='0' className='table-dark'>
                   <th style={{width: '15%'}}></th>
                   {dates.map(date => (                  
                     <th style={{textAlign: 'center',width: `${85/dates.length}%`}} key={aggregatedData[date].date}>{formatDate(aggregatedData[date].date)} </th>                  
@@ -353,7 +381,7 @@ const HistoricReport = () =>{
         <div className="container mt-4">
             <h3>Historic Report by WBS and Maritz Project</h3>
             <div className="row">                            
-                <div className="col-5  d-flex flex-row  align-items-start">
+                <div className="col-4  d-flex flex-row  align-items-start">
 
                       <ul className="nav nav-pills">
                             {[
@@ -375,11 +403,16 @@ const HistoricReport = () =>{
                           </ul>
                 </div>      
               
-                <div className="col-3 d-flex flex-row align-items-center justify-content-around">
+                <div className="col-4 d-flex flex-row align-items-center justify-content-around">
                     <div className="p-2">
                         <input type="radio" className="form-check-input" id="radio0" name="optradio" value="account" 
                         checked={radioValue === 'account'}
                         onChange={(e) => setRadioValue(e.target.value)} /> Account
+                    </div>
+                     <div className="p-2">
+                        <input type="radio" className="form-check-input" id="radio0" name="optradio" value="pid" 
+                        checked={radioValue === 'pid'}
+                        onChange={(e) => setRadioValue(e.target.value)} /> STK PID
                     </div>
                     <div className="p-2">
                         <input type="radio" className="form-check-input" id="radio1" name="optradio" value="wbs" 
@@ -390,7 +423,7 @@ const HistoricReport = () =>{
                         <input type="radio" className="form-check-input" id="radio2" name="optradio" value="maritz"
                         checked={radioValue === 'maritz'} 
                         onChange={(e) => setRadioValue(e.target.value)}
-                         /> Project
+                         /> Maritz Project
                     </div>
                 </div>
                 <div className="col-2 ms-5 d-flex flex-row align-items-center ">                       
@@ -418,7 +451,20 @@ const HistoricReport = () =>{
                             <option key={id.Softtek_ProjectID} value={id.Softtek_ProjectID}>{id.Project_WBS}</option>
                             ))}
                         </select> 
-                   ):'')}
+                   ):(radioValue ==='pid')?(
+                      <select
+                            className="form-select" 
+                            value={selectedPid || ''}
+                            onChange={(e)=> setSelectedPid(e.target.value)}
+                            >
+                            <option value="">-- Select ProjectID --</option>
+                                {pids.map(pid => (
+                                  <option key={pid} value={pid}>{pid}</option>
+                                ))}
+                        </select> 
+
+
+                   ):(''))}
                 </div>
 
             <div className="col-1 align-items-end">

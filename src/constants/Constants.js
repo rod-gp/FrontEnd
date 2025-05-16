@@ -18,10 +18,15 @@ const Constants = {
         {CID: 1, Cost_Name:"Airfare"},
         {CID: 2, Cost_Name:"Bonus"},
         {CID: 3, Cost_Name:"Car"},
+        {CID: 10, Cost_Name:"Equipment"},
+        {CID: 9, Cost_Name:"Gift Cards"},
         {CID: 4, Cost_Name:"Hotel"},
         {CID: 5, Cost_Name:"Mobile"},
         {CID: 6, Cost_Name:"Perdiem"},
+        {CID: 8, Cost_Name:"Shipping"},
         {CID: 7, Cost_Name:"Training"},
+
+
     ],
     
 

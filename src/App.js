@@ -28,7 +28,7 @@ function App() {
   return (
     <Router>
       <div className="d-flex">
-        <nav className="d-flex flex-column bg-light p-3 vh-100" style={{ minheight: '150vh', width: '220px' }}> 
+        <nav className="d-flex flex-column bg-light p-3 vh-100" style={{ minheight: '250vh', width: '200px' }}> 
           <h4>Menu</h4>
           <ul className="nav flex-column">
             
@@ -39,8 +39,8 @@ function App() {
                 data-bs-target="#submenu4"
                 onClick={() => toggleMenu(4)} >Dashboard ▾</button>         
             
-            <div className={`collapse list-unstyled ${activeIndex === 4 ? "show" : ""}`} id="submenu4">
-            <ul className="nav flex-column ps-3">
+              <div className={`collapse list-unstyled ${activeIndex === 4 ? "show" : ""}`} id="submenu4">
+                <ul className="nav flex-column ps-3">
                     <li className="nav-item">
                         <Link className="nav-link" to="/dash">People</Link>
                     </li>
@@ -56,15 +56,9 @@ function App() {
                     <li className="nav-item">
                         <Link className="nav-link" to="/dash/hspnl">Historic P&L</Link>
                     </li>
-
-
-
-            </ul>
-
-
-            </div>
-
-     
+                </ul>
+              </div>
+    
           </li>
           
           <li className="nav-item">

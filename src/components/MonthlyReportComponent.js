@@ -220,7 +220,8 @@ const MonthlyReport = () => {
 
       const infrastructureCost = Object.keys(groupedSums).reduce((total, color) => {
         if (color === 'Direct_Cost' && groupedSums[color]?.hours) {          
-          return total + (groupedSums[color].hours * ( Constants.INFRASTRUCTURE[0].Cost /(daysPerMonth*8)));
+          // return total + (groupedSums[color].hours * ( Constants.INFRASTRUCTURE[0].Cost /(daysPerMonth*8)));
+          return total + (groupedSums[color].hours * 0.8900);
         }
         return total;
       }, 0);
