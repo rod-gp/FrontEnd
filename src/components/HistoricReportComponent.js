@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import maritzProjectDataService from "../services/maritzProject.service";
 import dds from "../services/dashboard.service.js";
 import { NumericFormat } from "react-number-format";
-import Constants from "../constants/Constants";
-import FinanceDataService from '../services/finance.service';
+//import Constants from "../constants/Constants";
+//import FinanceDataService from '../services/finance.service';
+
+import { Line } from 'react-chartjs-2';
 
 const HistoricReport = () =>{
+
 
     const [radioValue, setRadioValue] = useState('');
     const [selectedProject, setSelectedProject] = useState('');
@@ -17,12 +20,11 @@ const HistoricReport = () =>{
     const [theContainer, setContainer] = useState('');
     const [pnlData, setPnlData] = useState([]);
     const [isLoading, setLoading] = useState(false);
-    const [daysInMonth, setDaysInMonths] = useState([]);
+  //  const [daysInMonth, setDaysInMonths] = useState([]);
     const [aggregatedData, setAggregatedData] = useState([]);
+    const [activeTab, setActiveTab] = useState('');
 
-     const [activeTab, setActiveTab] = useState('');
-
-      const handleTabClick = (tabId) => {
+    const handleTabClick = (tabId) => {
           setSelectedProject('');
           setSelectedWBS('');
           setSelectedPid('');
@@ -62,6 +64,35 @@ const HistoricReport = () =>{
 
     }, []);
 
+    useEffect(() => {
+      setAggregatedData([]);
+
+      if (!pnlData || pnlData.length === 0) return;
+
+      if (radioValue === 'account') {
+        const tmp = aggregateByDate(projects);
+        setAggregatedData(tmp);
+      } else if (radioValue === 'wbs' && selectedWBS) {
+        const filtered = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS));
+        const tmp = aggregateByDate(filtered);
+        setAggregatedData(tmp);
+      } else if (radioValue === 'pid' && selectedPid) {
+        const filtered = projects.filter(project =>
+          project.Softtek_Project?.Project_WBS?.startsWith(selectedPid + "-")
+        );
+        const tmp = aggregateByDate(filtered);
+        setAggregatedData(tmp);
+      } else if (radioValue === 'maritz' && selectedProject) {
+        const tmp = aggregateByDate(selectedProject);
+        setAggregatedData(tmp);
+      }
+
+    }, [radioValue, selectedProject, selectedWBS, selectedPid, projects, pnlData]);
+
+
+
+/*
+
     useEffect(() =>{
       const fetch= async()=>{
         setSelectedProject('');
@@ -69,12 +100,7 @@ const HistoricReport = () =>{
         setAggregatedData([]);
 
         if(radioValue==='account'){
-         // console.log('inside account')
-         // console.log(projects);
-          //const pIWBS = projects.map(pro => Number(pro.Maritz_ProjectID));
-         
-          const tmp =  aggregateByDate(projects);
-          //console.log(tmp)  
+          const tmp =  aggregateByDate(projects);  
           setAggregatedData(tmp);
         }
       }
@@ -107,20 +133,21 @@ const HistoricReport = () =>{
 
 
     useEffect(() =>{       
-        const fetchData= () => { 
-
+        
+      const fetchData= () => { 
       const tmp = aggregateByDate(selectedProject);        
       setAggregatedData(tmp);
              
-        }
+      }
         
-         if (pnlData && pnlData.length > 0){
-            fetchData();
-        }
+      if (pnlData && pnlData.length > 0){
+         fetchData();
+      }
     
  
      },[selectedProject,projects])
  
+*/
 
     useEffect(() =>{
        
@@ -143,23 +170,25 @@ const HistoricReport = () =>{
               const totalMonths = containerToMonths[theContainer] ?? '';
 
               const theDates = getLastNDates(Number(totalMonths));    
-              const uniqueYears = [...new Set(theDates.map(date => new Date(date).getUTCFullYear()))];
               
               setLoading(true);
-              const daysList =  (await Promise.all(
+             /*
+            const uniqueYears = [...new Set(theDates.map(date => new Date(date).getUTCFullYear()))];
+             
+             const daysList =  (await Promise.all(
                   uniqueYears.map(async td => FinanceDataService.getDaysPerMonth(td) )
                   ))
                   .map(response => response.data)
                   .flat();
 
               setDaysInMonths(daysList);
-              
+              */
               const thePnlData = (await Promise.all(
                   theDates.map(async td => {
                     const result = await dds.getPLbyMonth(td);
                     if (!result || !Array.isArray(result.data)) {
                       console.error(`Expected an array in result.data, but received:`, result);
-                      return [];  // Return an empty array if 'data' is not an array
+                      return [];  
                     }
                     return result.data.map(item => ({
                       ...item,
@@ -176,21 +205,7 @@ const HistoricReport = () =>{
 
     },[theContainer])
 
-  /*
-    function findWorkingDays(date) {
-        const [year, month] = date.split('-');
-      
-        const match = daysInMonth.find(d => {
-          const dDate = new Date(d.Date);
-          return (
-            dDate.getUTCFullYear().toString() === year &&
-            String(dDate.getUTCMonth() + 1).padStart(2, '0') === month
-          );
-        });
-      
-        return match ? match.Days : 0;
-      }
-*/
+ 
 
     function formatDate (date) {
         if (date==='TOTAL') return 'Total';
@@ -295,9 +310,11 @@ const HistoricReport = () =>{
 
         if(!aggregatedData || Object.keys(aggregatedData).length === 0)
            return '';
-
-        const dates = Object.keys(aggregatedData);
+        const filteredData = aggregatedData.filter(d => !(d.Revenue === 0));
         
+        const dates = Object.keys(filteredData);
+        // console.log(aggregatedData);
+
         const metrics = [
           {id: 'Revenue', name:'Revenue'},
           {id: 'Direct_Cost',name:'Direct Cost'},
@@ -306,10 +323,14 @@ const HistoricReport = () =>{
           {id: 'Total_Cost',name:'Total Cost'},
           {id: 'Gross_Margin',name:'Gross Margin'},
           {id: 'Gross_Margin_Percent',name:'Gross Margin %'},
-          {id: 'Total_Hours',name:'Total Hours'}
+          {id: 'Total_Hours',name:'Total Hours'},
+          {id: 'Rev_Hour',name:'Revenue per Hour'},
+          {id: 'Cost_Hour',name:'Cost per Hour'}
+
         ];
       
-        // Return the table as JSX
+        
+       
         return (
           <div className="table-responsive w-75">
             <table className="table table-bordered table-striped small">
@@ -317,7 +338,7 @@ const HistoricReport = () =>{
                 <tr key='0' className='table-dark'>
                   <th style={{width: '15%'}}></th>
                   {dates.map(date => (                  
-                    <th style={{textAlign: 'center',width: `${85/dates.length}%`}} key={aggregatedData[date].date}>{formatDate(aggregatedData[date].date)} </th>                  
+                    <th style={{textAlign: 'center',width: `${85/dates.length}%`}} key={filteredData[date].date}>{formatDate(filteredData[date].date)} </th>                  
                   ))}
                 </tr>
               </thead>
@@ -326,7 +347,7 @@ const HistoricReport = () =>{
                   <tr key={metric.id}>
                     <td >{metric.name}</td>
                     {dates.map(date => {
-                      const data = aggregatedData[date];
+                      const data = filteredData[date];
                       let value = data[metric.id];
       
                       // If it's Gross Margin Percentage, convert to percentage format
@@ -353,7 +374,33 @@ const HistoricReport = () =>{
                             prefix=""
                          /> </td>
 
-                      }else {
+                      }if (metric.id === 'Rev_Hour') {
+                        return <td align='right' key={`${date}-${metric.id}`}> 
+                             <NumericFormat                     
+                            value=  {data["Revenue"]/data["Total_Hours"]}
+                            displayType="text"
+                            thousandSeparator={true}
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            prefix="$"
+                         /> </td>
+
+                      }
+                      if (metric.id === 'Cost_Hour') {
+                        return <td align='right' key={`${date}-${metric.id}`}> 
+                             <NumericFormat                     
+                            value=  {data["Total_Cost"]/data["Total_Hours"]}
+                            displayType="text"
+                            thousandSeparator={true}
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            prefix="$"
+                         /> </td>
+
+                      }
+                      
+                      
+                      else {
                       return <td align='right' key={`${date}-${metric.id}`}>
                          <NumericFormat                     
                             value=  {value}
@@ -376,7 +423,94 @@ const HistoricReport = () =>{
       };
       
 
+      const chart =() => {    
+       
+     
+      const filteredData = aggregatedData.filter(d => !(d.Revenue === 0 || d.date === 'TOTAL'));
 
+
+      const labels = filteredData.map(d => formatDate(d.date));
+
+      const data = {
+        labels,
+        datasets: [
+          {
+            label: 'Revenue',
+            data: filteredData.map(d => d.Revenue),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.3,
+          },
+          {
+            label: 'Total Cost',
+            data: filteredData.map(d => d.Total_Cost),
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.3,
+          },
+          {
+            label: 'Gross Margin %',
+            data: filteredData.map(d => d.Gross_Margin_Percent * 100), 
+            borderColor: 'rgb(255, 206, 86)',
+            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+            tension: 0.3,
+            yAxisID: 'y1', // Use a secondary Y-axis
+          },
+        ],
+      };
+      
+      const options = {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              onClick: (e, legendItem, legend) => {
+               
+                const ci = legend.chart;
+                const index = legendItem.datasetIndex;
+                const meta = ci.getDatasetMeta(index);
+                meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+                ci.update();
+              },
+            },
+            title: {
+              display: true,
+              text: 'Monthly Revenue, Cost, and Margin',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            },
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'USD',
+              },
+            },
+            y1: {
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Gross Margin %',
+              },
+              grid: {
+                drawOnChartArea: false,
+              },
+              ticks: {
+                callback: value => `${value}%`,
+              },
+            },
+          },
+        };
+
+      return <Line options={options} data={data} />;
+
+      }
+
+
+/*
     return(
         <div className="container mt-4">
             <h3>Historic Report by WBS and Maritz Project</h3>
@@ -481,11 +615,153 @@ const HistoricReport = () =>{
                     {theContainer === '#l12m' ? 'Last 12 Months':''}
 
             { (aggregatedData) && generateTransposedTable()}
-            </div>
-            </>)}
+             </div>
 
+            <div className="container align-content-start mt-4">
+            {(aggregatedData) && chart()}  
+            </div>
+          </>
+          )}
+
+        
         </div>
     );
+*/
+  return (
+<div className="container-fluid p-4">
+  <div className="row mb-4">
+    <div className="col-md-6">
+      <h2>Historic Report</h2>
+    </div>
+  </div>
+
+  <div className="row mb-4">
+    <div className="col-md-4">
+      <label className="form-label">Time Range:</label>
+      <div className="btn-group" role="group">
+        {[
+          { id: "#cm", label: "Current Month" },
+          { id: "#l3m", label: "Last 3 Months" },
+          { id: "#ytd", label: "YTD" },
+          { id: "#l12m", label: "L12M" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            className={`btn ${activeTab === tab.id ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => handleTabClick(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div className="col-md-4">
+      <label className="form-label">Report Type:</label>
+      <div className="btn-group" role="group">
+        {[
+          { id: "account", label: "Account" },
+          { id: "pid", label: "STK PID" },
+          { id: "wbs", label: "WBS" },
+          { id: "maritz", label: "Maritz Project" },
+        ].map((type) => (
+          <button
+            key={type.id}
+            className={`btn ${radioValue === type.id ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setRadioValue(type.id)}
+          >
+            {type.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div className="col-md-2">
+      {radioValue === "maritz" && (
+        <div>
+          <label className="form-label">Maritz Project:</label>
+          <select
+            className="form-select"
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+          >
+            <option value="">Select a project</option>
+            {projects.map((project) => (
+              <option key={project.Maritz_ProjectID} value={project.Maritz_ProjectID}>
+                {project.Project_Name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {radioValue === "wbs" && (
+        <div>
+          <label className="form-label">WBS:</label>
+          <select
+            className="form-select"
+            value={selectedWBS}
+            onChange={(e) => setSelectedWBS(e.target.value)}
+          >
+            <option value="">Select a WBS</option>
+            {stkProj.map((wbs) => (
+              <option key={wbs.Softtek_ProjectID} value={wbs.Softtek_ProjectID}>
+                {wbs.Project_WBS}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {radioValue === "pid" && (
+        <div>
+          <label className="form-label">STK PID:</label>
+          <select
+            className="form-select"
+            value={selectedPid}
+            onChange={(e) => setSelectedPid(e.target.value)}
+          >
+            <option value="">Select a PID</option>
+            {pids.map((pid) => (
+              <option key={pid} value={pid}>
+                {pid}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+    </div>
+
+    <div className="col-md-2 text-end">
+      {isLoading && (
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      ) }
+    </div>
+  </div>
+
+  {(pnlData && pnlData.length > 0) && (
+    <div className="row">
+      <div className="col-md-12">
+        <div className="w-100">
+          {generateTransposedTable()}
+        </div>
+      </div>
+    </div>
+  )}
+
+  {(pnlData && pnlData.length > 0) && (
+    <div className="row mt-4">
+      <div className="col-md-12 w-75">
+        
+              {chart()}
+         
+        </div>
+    </div>
+  )}
+</div>
+
+
+  );
 
 }
 export default HistoricReport;
