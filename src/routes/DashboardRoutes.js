@@ -4,6 +4,7 @@ import AttritionComponent from "../components/AttritionComponent";
 import RevenueComponent from "../components/RevenueComponent";
 import MonthlyReport from "../components/MonthlyReportComponent";
 import HistoricReport from "../components/HistoricReportComponent";
+import EmployeeCostReport from "../components/EmployeeCostReportComponent";
 
 const DashboardRoutes = () => {
   return (
@@ -13,6 +14,7 @@ const DashboardRoutes = () => {
       <Route path="/revenue" element={<RevenueComponent />} />
       <Route path="/pnl" element={<MonthlyReport />} />
       <Route path="/hspnl" element={<HistoricReport />} />
+      <Route path="/hsempc" element={<EmployeeCostReport />} />
     </Routes>
   );
 };

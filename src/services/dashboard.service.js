@@ -121,6 +121,20 @@ class DashboardDataService{
             throw error;
         }
     }
+
+
+    async getEmployeeCostByMonth(theDate){
+        try {           
+            return await http.get("/dashboard/empcostmonth",{
+                params: {                     
+                     theDate: theDate
+             }
+         });
+        } catch (error) {
+            console.error("Error fetch P&L", error);
+            throw error;
+        }
+    }
 }
 
 const dds = new DashboardDataService();

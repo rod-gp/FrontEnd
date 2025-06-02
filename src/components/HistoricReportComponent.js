@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import maritzProjectDataService from "../services/maritzProject.service";
 import dds from "../services/dashboard.service.js";
 import { NumericFormat } from "react-number-format";
-//import Constants from "../constants/Constants";
-//import FinanceDataService from '../services/finance.service';
+
 
 import { Line } from 'react-chartjs-2';
 
@@ -20,7 +19,6 @@ const HistoricReport = () =>{
     const [theContainer, setContainer] = useState('');
     const [pnlData, setPnlData] = useState([]);
     const [isLoading, setLoading] = useState(false);
-  //  const [daysInMonth, setDaysInMonths] = useState([]);
     const [aggregatedData, setAggregatedData] = useState([]);
     const [activeTab, setActiveTab] = useState('');
 
@@ -90,65 +88,6 @@ const HistoricReport = () =>{
     }, [radioValue, selectedProject, selectedWBS, selectedPid, projects, pnlData]);
 
 
-
-/*
-
-    useEffect(() =>{
-      const fetch= async()=>{
-        setSelectedProject('');
-        setSelectedWBS('');
-        setAggregatedData([]);
-
-        if(radioValue==='account'){
-          const tmp =  aggregateByDate(projects);  
-          setAggregatedData(tmp);
-        }
-      }
-      fetch();
-
-    },[radioValue, projects])
-
-    useEffect(() => {
-      const pIWBS = projects.filter(pro => Number(pro.Softtek_ProjectID) === Number(selectedWBS));      
-      const tmp =  aggregateByDate(pIWBS);  
-      setAggregatedData(tmp);
-      
-      
-    }, [selectedWBS, projects]);
-
-    useEffect(() => {
-      if (!selectedPid) {
-           setAggregatedData([]);
-            return;
-      }
-      
-
-      const pIWBS = projects.filter(project => project.Softtek_Project?.Project_WBS?.startsWith(selectedPid + "-"));
-      
-      const tmp =  aggregateByDate(pIWBS);  
-      setAggregatedData(tmp);
-      
-    }, [selectedPid, projects]);
-
-
-
-    useEffect(() =>{       
-        
-      const fetchData= () => { 
-      const tmp = aggregateByDate(selectedProject);        
-      setAggregatedData(tmp);
-             
-      }
-        
-      if (pnlData && pnlData.length > 0){
-         fetchData();
-      }
-    
- 
-     },[selectedProject,projects])
- 
-*/
-
     useEffect(() =>{
        
         const getAllData = async() => {
@@ -172,17 +111,7 @@ const HistoricReport = () =>{
               const theDates = getLastNDates(Number(totalMonths));    
               
               setLoading(true);
-             /*
-            const uniqueYears = [...new Set(theDates.map(date => new Date(date).getUTCFullYear()))];
-             
-             const daysList =  (await Promise.all(
-                  uniqueYears.map(async td => FinanceDataService.getDaysPerMonth(td) )
-                  ))
-                  .map(response => response.data)
-                  .flat();
-
-              setDaysInMonths(daysList);
-              */
+ 
               const thePnlData = (await Promise.all(
                   theDates.map(async td => {
                     const result = await dds.getPLbyMonth(td);
@@ -510,123 +439,6 @@ const HistoricReport = () =>{
       }
 
 
-/*
-    return(
-        <div className="container mt-4">
-            <h3>Historic Report by WBS and Maritz Project</h3>
-            <div className="row">                            
-                <div className="col-4  d-flex flex-row  align-items-start">
-
-                      <ul className="nav nav-pills">
-                            {[
-                              { id: '#cm', label: 'Current Month' },
-                              { id: '#l3m', label: 'Last 3 Months' },
-                              { id: '#ytd', label: 'YTD' },
-                              { id: '#l12m', label: 'L12M' }
-                            ].map(tab => (
-                              <li className="nav-item" key={tab.id}>
-                                <button
-                                  type="button"
-                                  className={`nav-link ${activeTab === tab.id ? 'active' : ''}`}
-                                  onClick={() => handleTabClick(tab.id)}
-                                >
-                                  {tab.label}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                </div>      
-              
-                <div className="col-4 d-flex flex-row align-items-center justify-content-around">
-                    <div className="p-2">
-                        <input type="radio" className="form-check-input" id="radio0" name="optradio" value="account" 
-                        checked={radioValue === 'account'}
-                        onChange={(e) => setRadioValue(e.target.value)} /> Account
-                    </div>
-                     <div className="p-2">
-                        <input type="radio" className="form-check-input" id="radio0" name="optradio" value="pid" 
-                        checked={radioValue === 'pid'}
-                        onChange={(e) => setRadioValue(e.target.value)} /> STK PID
-                    </div>
-                    <div className="p-2">
-                        <input type="radio" className="form-check-input" id="radio1" name="optradio" value="wbs" 
-                        checked={radioValue === 'wbs'}
-                        onChange={(e) => setRadioValue(e.target.value)} /> WBS
-                    </div>
-                    <div className="p-2">
-                        <input type="radio" className="form-check-input" id="radio2" name="optradio" value="maritz"
-                        checked={radioValue === 'maritz'} 
-                        onChange={(e) => setRadioValue(e.target.value)}
-                         /> Maritz Project
-                    </div>
-                </div>
-                <div className="col-2 ms-5 d-flex flex-row align-items-center ">                       
-                {!isLoading && radioValue  && (
-                   radioValue ==='maritz' ? (                
-                        <select
-                                value={selectedProject || ''}
-                                className="form-select" 
-                                onChange={(e)=> setSelectedProject(e.target.value)}
-                                >
-                                <option value="">-- Select Project --</option>
-                                {projects.map(id => (
-                                    <option key={id.Maritz_ProjectID} value={id.Maritz_ProjectID}>{id.Project_Name}</option>
-                                ))}
-                        </select> 
-                    ) : (radioValue ==='wbs')?(
-                        <select
-                            className="form-select" 
-                            value={selectedWBS || ''}
-                            onChange={(e)=> setSelectedWBS(e.target.value)}
-                            >
-                            <option value="">-- Select WBS --</option>
-                            {stkProj.sort((a, b) => a.Project_WBS.localeCompare(b.Project_WBS, undefined, { sensitivity: 'base' }))
-                                .map(id => (
-                            <option key={id.Softtek_ProjectID} value={id.Softtek_ProjectID}>{id.Project_WBS}</option>
-                            ))}
-                        </select> 
-                   ):(radioValue ==='pid')?(
-                      <select
-                            className="form-select" 
-                            value={selectedPid || ''}
-                            onChange={(e)=> setSelectedPid(e.target.value)}
-                            >
-                            <option value="">-- Select ProjectID --</option>
-                                {pids.map(pid => (
-                                  <option key={pid} value={pid}>{pid}</option>
-                                ))}
-                        </select> 
-
-
-                   ):(''))}
-                </div>
-
-            <div className="col-1 align-items-end">
-                {isLoading ? <div className="spinner-border"></div> :''}
-            </div>
-            </div>
-
-            {(pnlData && pnlData.length >0) && (
-            <>
-            <div className="container mt-4">
-                    {theContainer === '#cm' ? 'Current Month':''}
-                    {theContainer === '#l3m' ? 'Last 3 Months':''}
-                    {theContainer === '#ytd' ? 'Year To Date':''}       
-                    {theContainer === '#l12m' ? 'Last 12 Months':''}
-
-            { (aggregatedData) && generateTransposedTable()}
-             </div>
-
-            <div className="container align-content-start mt-4">
-            {(aggregatedData) && chart()}  
-            </div>
-          </>
-          )}
-
-        
-        </div>
-    );
-*/
   return (
 <div className="container-fluid p-4">
   <div className="row mb-4">

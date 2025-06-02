@@ -178,7 +178,7 @@ const MonthlyReport = () => {
       )
     : [];
     
-    console.log(dcEmp);
+    //console.log(dcEmp);
         const filteredEmployee = Object.values(
             dcEmp.reduce((acc, item) => {
             const key = `${item.Color}-${item.EmployeeID}`; // Grouping by Color + EmployeeID only

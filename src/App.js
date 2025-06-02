@@ -56,6 +56,10 @@ function App() {
                     <li className="nav-item">
                         <Link className="nav-link" to="/dash/hspnl">Historic P&L</Link>
                     </li>
+                    <li className="nav-item">
+                        <Link className="nav-link" to="/dash/hsempc">Employee Cost</Link>
+                    </li>
+
                 </ul>
               </div>
     
