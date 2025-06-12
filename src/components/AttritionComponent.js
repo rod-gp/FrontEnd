@@ -16,6 +16,8 @@ import { Line } from 'react-chartjs-2';
 const AttritionComponent = () => {
 
     const [selectedQuarter, setSelectedQuarter] = useState(new Date());
+    const [attrition, setAttrition] = useState([]);
+    const [attritionDetails, setAttritionDetails] = useState([]);
    
     useEffect(() => {
         const fetchData = async () => {
@@ -24,9 +26,10 @@ const AttritionComponent = () => {
                     dds.getAttrition(selectedQuarter),
                     dds.getAttritionDetails(selectedQuarter)
                 ]);
-    
+                
                 setAttrition(byAttrition.data);
                 setAttritionDetails(attritionDetails.data);
+                console.log(byAttrition.data);
 
           } catch (error) {
             console.error('Error fetching data:', error);
@@ -47,8 +50,7 @@ const AttritionComponent = () => {
         return date.toLocaleString("en-US", { month: "short" }) + "/" + year;
     };
 
-    const [attrition, setAttrition] = useState([]);
-    const [attritionDetails, setAttritionDetails] = useState([]);
+
 
     const labels = attrition.map(att => formatDate(att.Month));
     const attritionData = attrition.map(att => att.Employees_Attrition);
